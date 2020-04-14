@@ -108,5 +108,5 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
     df <- import_cols(file_i, path_i, cols = c("IDPERS", paste0("P", as.character(sprintf('%02d', years[i] %% 100)), "W604")))
     data[[i]] <- df
   }
-  return(data)
+  return(data %>% reduce(left_join, by = "IDPERS"))
 }
