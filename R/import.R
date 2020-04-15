@@ -94,6 +94,8 @@ import_cols <- function(file = stop("Please provide a file name in the format xx
 #' # work conditions stress
 #' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
 #' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
+#' # interference work - private
+#' work_life_balance <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04F50"), year_start = "2004", year_end = "2017")
 import_long_cols <- function(file = stop("Please provide a file name in the format xxx.sav"),
                                      path = stop("Please provide the path to the file."),
                                      cols = stop("Please provide a vector of the column numbers you want to import."),
@@ -105,7 +107,7 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
     file_i <- paste0("SHP", as.character(sprintf('%02d', years[i] %% 100)), "_", file)
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
 
-    df <- import_cols(file_i, path_i, cols = c("IDPERS", paste0("P", as.character(sprintf('%02d', years[i] %% 100)), "W604")))
+    df <- import_cols(file_i, path_i, cols = c("IDPERS", paste0("P", as.character(sprintf('%02d', years[i] %% 100)), "F50")))
     data[[i]] <- df
   }
   return(data %>% reduce(left_join, by = "IDPERS"))
