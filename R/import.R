@@ -112,3 +112,29 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
   }
   return(data %>% reduce(left_join, by = "IDPERS"))
 }
+
+
+#' Title
+#'
+#' @param cols
+#' @param year
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' yearly_col_names(c("IDPERS", "AXXA00"), 2012)
+yearly_col_names <- function(cols, year) {
+  assertthat::assert_that(assertthat::is.string(cols[1]))
+  assertthat::assert_that(assertthat::is.number(year))
+  assertthat::assert_that(assertthat::see_if(year >= 1999))
+  assertthat::assert_that(assertthat::see_if(year <= 2020))
+  assertthat::assert_that(assertthat::are_equal(cols[1], "IDPERS"))
+
+  for (i in 2:length(cols)) {
+    cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+  }
+
+  assertthat::assert_that(assertthat::is.string(cols[1]))
+  return(cols)
+}
