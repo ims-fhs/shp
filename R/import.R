@@ -107,7 +107,7 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
     file_i <- paste0("SHP", as.character(sprintf('%02d', years[i] %% 100)), "_", file)
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
 
-    df <- import_cols(file_i, path_i, cols = c("IDPERS", paste0("P", as.character(sprintf('%02d', years[i] %% 100)), "F50")))
+    df <- import_cols(file_i, path_i, cols = yearly_col_names(cols, years[i]))
     data[[i]] <- df
   }
   return(data %>% reduce(left_join, by = "IDPERS"))
