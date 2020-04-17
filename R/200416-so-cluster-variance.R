@@ -12,9 +12,9 @@
 #   maxNA=3
 # )
 #
-# kml(myCld, 2, toPlot = 'both')
+# kml(myCld, 2)
 #
 # plot(myCld)
-#
+# plot(myCld, 2, parTraj=parTRAJ(col="clusters"), toPlot = "traj")
 # # https://stackoverflow.com/questions/61247205/how-can-we-show-the-trajectories-belonging-to-clusters-in-kml-package
 #
