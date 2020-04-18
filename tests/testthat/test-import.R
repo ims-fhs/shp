@@ -12,6 +12,7 @@ test_that("import_id", {
 
 test_that("import_cols", {
   expect_error(import_cols())
+  expect_error(import_cols("some_var", data.frame(some_other_name = 1, even_an_other_one = 2)) )
 })
 
 test_that("yearly_col_names", {

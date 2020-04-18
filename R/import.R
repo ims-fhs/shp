@@ -26,6 +26,7 @@ import_SPSS_file <- function(file = stop("Please provide a file name in the form
 #' @export
 #'
 #' @examples
+#' shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
 #' shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
 #' shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
 import_SPSS_file_head <- function(file = stop("Please provide a file name in the format xxx.sav"),
@@ -71,8 +72,9 @@ import_id <- function(file = stop("Please provide a file name in the format xxx.
 #' shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
 import_cols <- function(file = stop("Please provide a file name in the format xxx.sav"),
                       path = stop("Please provide the path to the file."),
-                      cols = stop("Please provide a vector of the column numbers you want to import.")) {
+                      cols = stop("Please provide a vector of the column numbers or column names you want to import.")) {
   df <- import_SPSS_file(file, path)
+  assertthat::assert_that(all(cols %in% names(df)))
   df <- df[, cols]
   assertthat::assert_that(
     assertthat::are_equal(ncol(df), length(cols))
@@ -108,9 +110,10 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
 
     df <- import_cols(file_i, path_i, cols = yearly_col_names(cols, years[i]))
+    names(df)[1] <- "ID"
     data[[i]] <- df
   }
-  return(data %>% reduce(left_join, by = "IDPERS"))
+  return(data %>% reduce(left_join, by = "ID"))
 }
 
 
@@ -124,15 +127,24 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
 #'
 #' @examples
 #' yearly_col_names(c("IDPERS", "AXXA00"), 2012)
+#' yearly_col_names(c("IDHOUS", "HXXH01"), 2012)
 yearly_col_names <- function(cols, year) {
   assertthat::assert_that(assertthat::is.string(cols[1]))
   assertthat::assert_that(assertthat::is.number(year))
   assertthat::assert_that(assertthat::see_if(year >= 1999))
   assertthat::assert_that(assertthat::see_if(year <= 2020))
-  assertthat::assert_that(assertthat::are_equal(cols[1], "IDPERS"))
+  # assertthat::assert_that(assertthat::are_equal(cols[1], "IDPERS"))
 
-  for (i in 2:length(cols)) {
-    cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+  if(cols[1] == "IDPERS") {
+    for (i in 2:length(cols)) {
+      cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+    }
+  }
+  if(cols[1] == "IDHOUS") {
+    cols[1] <- paste0(cols[1], as.character(sprintf('%02d', year %% 100)))
+    for (i in 2:length(cols)) {
+      cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+    }
   }
 
   assertthat::assert_that(assertthat::is.string(cols[1]))
