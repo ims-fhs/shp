@@ -1,0 +1,155 @@
+---
+title: "Schlafprobleme erklärt.."
+author: "IMS-FHS"
+date: "20 April 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(shp)
+library(kml)
+
+head <- import_SPSS_file_head("SHP04_P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
+
+data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXC06A"), year_start = "2004", year_end = "2017")
+data <- data %>% filter(complete.cases(.))
+
+PXXC06A <- clusterLongData(data)
+
+```
+
+# Idee des Dokuments
+
+Im Folgenden möchte ich euch ein einfaches Besipiel geben für mögliche nächste Schritte (nach den univariaten-Längsschnitt-Clusterings..).
+
+Es geht nun darum, das Clustering im Längsschnitt zu *erklären* mit weiteren Variablen.
+
+Hierzu haben wir grundsätzlich zwei Möglichkeiten:
+
+i) wir nutzen weitere *Längssschnitte*;
+ii) wir nutzen *Querschnittsmerkmale*
+
+Im Folgenden führe ich ein erstes Mal Variante ii) durch. Nicht weil sie besser ist, sondern weil sie einfacher durchzuführen und einfacher zu interpretieren ist.
+
+Also los.
+
+# Schlafprobleme im Längsschnitt
+
+Ich lasse meinen Algorithmus die Variable *P12C06A Health problems: Sleeping problems: Last 4 weeks* clustern.
+
+Wir betrachten also Individuen und ihre Schlafprobleme (mit einem Fokus auf die 4 Wochen vor der jährigen Befragung). Betrachtet werden knapp über 2000 Individuen, welche die Frage von 2004 - 2017 immer beantwortet haben.
+
+Grundsätzlich kann der Algorithmus nun beliebig viele Clusterings finden. Ein sehr gutes Clustering ist ein Clustering mit nur zwei Gruppen. Einfach gesagt: Eine Gruppe (73%) ohne Schlafprobleme, eine Gruppe (27%) mit Schlafproblemen.
+
+Eine grosse Dynamik ist nicht ersichtlich. Die Gruppen bleiben sehr konstant. Insgesamt ist eine leichte Zunahme ersichtlich, die könnte allerdings auch altersbedingt sein (die Individuen altern ja zwangsläufig von 2004 - 2017).
+
+
+```{r, echo = FALSE, include = TRUE}
+kml(PXXC06A, 2)
+plot(PXXC06A, 2, parTraj=parTRAJ(col="clusters"), toPlot = "traj", xlab = "Jahr")
+```
+
+Cluster *A* hat kaum Schlafprobleme, Cluster *B* hat Schlafprobleme.
+
+# So what?  - Die Suche nach Erklärungen
+
+Was *erklärt* nun den Unterschied?
+
+Hier können wir mit beliebigen statistischen Methoden, beliebige zusätzliche *Querschnittsmerkmale* der einzelnen Clustern in Betracht ziehen. 
+Zum Beispiel das Geschlecht oder das Alter.
+
+*Spoiler: Für einfallsreichere zusätzliche Variablen bin ich auf euren Input gespannt!*
+
+Wichtig ist: Die Variablen müssen irgendwie sinnvoll *nivellierbar* sein und sich möglichst nicht verändern.
+
+*Richtig gedacht: Das Alter verändert sich natürlich, also betrachte ich vorerst das 'mittlere' Alter. Also das Alter im Jahr 2010.*
+
+```{r, echo = FALSE, include = FALSE}
+data$cluster <- as.character(PXXC06A@c2[[1]]@clusters)
+
+age <- import_cols("SHP10_P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W12_2010", cols = c("IDPERS", "AGE10"))
+names(age)[1] <- "ID"
+data <- left_join(data, age)
+
+gender <- import_cols("SHP10_P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W12_2010", cols = c("IDPERS", "SEX10"))
+names(gender)[1] <- "ID"
+data <- left_join(data, gender)
+
+data_balanced <- data[, 16:18]
+data_balanced_true <- data_balanced[data_balanced$cluster == "B", ]
+data_balanced_false <- data_balanced[!data_balanced$cluster == "B", ]
+set.seed(123)
+sample <- sample(1:nrow(data_balanced_false), nrow(data_balanced_true))
+stopifnot(length(sample) == length(unique(sample)))
+data_balanced <- rbind(data_balanced_true, data_balanced_false[sample, ])
+
+data_balanced$cluster <- as.factor(data_balanced$cluster)
+data_balanced$SEX10 <- as.factor(data_balanced$SEX10)
+```
+
+## Geschlecht als Erklärung
+
+Wir betrachten nun gleichviele Individuen aus jedem Cluster.
+
+Das kleinere Cluster *B* verwenden wir vollständig (n = 670), aus dem Cluster *A* ziehen wir zufällig 670 Individuen. So haben wir gleichviele Individuen aus beiden Clustern.
+
+Nun können wir schauen, wie die Geschlechterverteilung aussieht:
+
+```{r, include = TRUE}
+table(data_balanced[, -2])/nrow(data_balanced_true)*100
+
+```
+
+Das heisst: in Cluster A ist die Verteilung quasi 1:1; in Cluster B überwiegt Geschlecht 2 (*@Thomas: weiblich, richtig?*) um einen Faktor 3.
+
+Unter den Individuen mit Schlafproblemen finden sich also Frauen mehr als 3x so häufig.
+
+*Hint: Diese Analyse ist besonders einfach durch- und interpretierbar. Wenn es also weitere kategoriale Variablen mit wenigen Leveln gibt, welche als Erklärung für (irgendwelche ) Längsschnitte (nicht nur die Variable hier) dienen könnten: Her damit!*
+
+## Alter als Erklärung
+
+Hier wird es etwas schwieriger, weil das alter nicht kategorial ist. Wir können aber Histogramme anschauen:
+
+```{r}
+hist(data_balanced$AGE10[data_balanced$cluster == "A"])
+hist(data_balanced$AGE10[data_balanced$cluster == "B"])
+
+```
+
+Hmm. Das untere Histogramm zum Cluster *B* scheint etwas weiter rechts zu liegen. Also sind die Individuen mit Schlafproblemen etwas älter. Eindeutig ersichtlich ist hier aber nix.
+
+Also rein in die Trickkiste: Wir können z.B. ein *mittleres Alter* je Cluster berechnen. Allerdings müssen wir auch noch in Betracht ziehen, dass die Weibchen in der Kohorte älter sein werden als die Männchen (da die Männchen ja im Schnitt früher das Zeitliche segnen). Also müssen wir einen Unterschied dann noch geschlechtsbereinigen.
+
+```{r}
+
+data_balanced <- data_balanced %>% group_by(cluster) %>% mutate(mean_age_by_cluster = mean(AGE10))
+data_balanced <- data_balanced %>% group_by(SEX10) %>% mutate(mean_age_by_sex = mean(AGE10))
+data_balanced <- data_balanced %>% mutate(age_difference = mean_age_by_cluster - mean_age_by_sex)
+data_balanced <- data_balanced %>% group_by(cluster) %>% mutate(age_difference = mean(age_difference))
+ggplot(data = data_balanced, aes(x = age_difference, y = cluster)) + geom_point()
+```
+
+Heisst soviel wie:
+
+Die Individuen in Cluster *A* sind geschlechtsbereinigt knapp 2 Jahre jünger als die Individuen in Cluster *B*. Also die Männchen mit Schlafproblemen sind knapp zwei Jahre älter als die Männchen ohne Schlafprobleme und die Weibchen mit Schlafproblemen knapp zwei Jahre älter als die Weibchen ohne Schlafprobleme.
+
+# Conclusion
+
+Das ist alles *im Fluss*. Und es gibt bei der Interpretation kein richtig und falsch.
+
+Aus meiner jetzigen Sicht gilt: Insbesondere die Erklärung über das Geschlecht ist sehr überzeugend.
+
+Das Alter. Naja.
+
+# So what?
+
+So können wir uns nun daran machen, explorativ gefundene Clusterings mit der Theorie abzugreifen.
+
+Ich brauche von euch:
+
+i) Listen (z.B. die interessantesten drei Variablen aus den Längsschnitten gemäss Liste Thomas) mit Längsschnittvariablen, welche euch als nächstes interessieren;
+ii) Listen mit Variablen (möglichst wieder genau beschrieben, also Name gemäss SHP) mit Variablen, welche ihr dazu in Verbindung setzen möchtet.
+
+Macht euch dazu möglichst reichhaltige Vorstellungen: *Welches psychosoziale Risiko in Verbindung mit Erwerbsarbeit schlägt sich in welcher Längsschnittvariable wieder und welche Querschnittvariablen könnten dies erklären?*
