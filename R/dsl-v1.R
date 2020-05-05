@@ -109,6 +109,7 @@ cluster <- function(data, nr_clusters = c(2:6), interactive = FALSE) {
   data@criterionActif <- "Ray.Turi"
   if (interactive) { x11(type = "Xlib"); choice(data) }
   res$cluster <- as.character(getClusters(data, nr_clusters[1]))
+  plotMeans(data, c(nr_clusters[1], 1))
   return(res)
 }
 
