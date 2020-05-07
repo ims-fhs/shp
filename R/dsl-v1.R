@@ -1,8 +1,8 @@
-#' open opens and checks a connection to the directory specified by path.
+#' opens the specified path. Checks, whether that path actually exists.
 #'
-#' @param path
+#' @param path The path, where the SHP data in SPSS format is stored
 #'
-#' @return
+#' @return a path. Attention: The path is also stored to the global environment.
 #'
 #' @examples
 #' open("data/rawdata/Data SPSS")
@@ -58,26 +58,25 @@ longitudinal <- function(data, var_name, path. = path) {
 #' imsbasics::clc()
 #' library(tidyverse); library(shp); library(kml)
 #' path <- "data/rawdata/Data SPSS"
-#' open(path) %>% longitudinal("PXXF50") %>% cross_sectional("AGE10")
+#' open(path) %>% cross_sectional("AGE04")
+#' open(path) %>% cross_sectional("AGE10")
+#' open(path) %>% cross_sectional("AGE17")
 #' open(path) %>% longitudinal("PXXF50") %>% cluster() %>% cross_sectional("AGE10")
 #' data <- open(path) %>% longitudinal("PXXF50") %>% cluster() %>% cross_sectional("AGE10")
 cross_sectional <- function(data, var_name, path. = path) {
-  # browser()
   path. <- paste0(path., "/SHP-Data-W1-W19-SPSS")
-  year <- readr::parse_number(var_name)
+  y2d <- gsub("\\D", "", var_name)
+  y4d <- as.integer(paste0(ifelse(y2d >= "90", "19", "20"), y2d))
 
-  file <- paste0("SHP", as.character(sprintf('%02d', year %% 100)), "_P_USER.sav")
-  if(year < 50) year <- paste0("20", year) else year <- paste0("19", year)
-  path. <- paste0(path., "/W", as.character(as.numeric(year) - 1998), "_", as.character(year))
+  file <- paste0("SHP", y2d, "_P_USER.sav")
+  path. <- paste0(path., "/W", y4d - 1998, "_", y4d)
 
   df <- import_cols(file, path., cols = c("IDPERS", var_name))
   names(df)[1] <- "ID"
 
-#
-#   cross_sectional <- import_cols(
-#     paste0("SHP", year, "_P_USER.sav"), paste0("../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W12_2010", cols = c("IDPERS", "AGE10"))
-#   names(age)[1] <- "ID"
-  data <- left_join(data, df)
+  if(class(data) != "character") {
+    data <- left_join(data, df)
+  } else data <- df
   return(data)
 }
 
