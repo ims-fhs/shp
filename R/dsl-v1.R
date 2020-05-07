@@ -63,9 +63,10 @@ longitudinal <- function(data, var_name, path. = path) {
 #' open(path) %>% cross_sectional("AGE17")
 #' open(path) %>% longitudinal("PXXF50") %>% cluster() %>% cross_sectional("AGE10")
 #' data <- open(path) %>% longitudinal("PXXF50") %>% cluster() %>% cross_sectional("AGE10")
+#' open(path) %>% cross_sectional("P17W39")
 cross_sectional <- function(data, var_name, path. = path) {
   path. <- paste0(path., "/SHP-Data-W1-W19-SPSS")
-  y2d <- gsub("\\D", "", var_name)
+  y2d <- stringi::stri_sub(gsub("\\D", "", var_name), 1, 2)
   y4d <- as.integer(paste0(ifelse(y2d >= "90", "19", "20"), y2d))
 
   file <- paste0("SHP", y2d, "_P_USER.sav")
@@ -130,6 +131,7 @@ cluster <- function(data, nr_clusters = c(2:6), interactive = FALSE) {
 #' data <- open(path) %>% longitudinal("PXXF50") %>% cluster()
 #' data %>% cross_sectional("AGE10") %>% explain()
 #' data %>% cross_sectional("SEX10") %>% explain()
+#' open(path) %>% longitudinal("PXXF50") %>% cluster(nr_clusters = 4) %>% cross_sectional("P10W39") %>% explain()
 explain <- function(data, what = cluster, with = as.name(names(data)[length(names(data))])) {
   if (length(unique(data[[with]])) < 5) {
     what <- enquo(what)
