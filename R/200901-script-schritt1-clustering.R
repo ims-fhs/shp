@@ -3,15 +3,31 @@ library(tidyverse)
 library(shp)
 library(kml)
 
+# Sample: AGE und OCCUPA
 data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "OCCUPAXX", "AGEXX"), year_start = "2008", year_end = "2017")
-occupation <- data
-occupied <- occupation %>%
+occupied <- data %>%
   select(!starts_with("AGE")) %>%
   pivot_longer(cols = starts_with("OCCUPA"), names_to = "year", names_prefix = "OCCUPA", values_to = "occupation") %>%
   group_by(ID) %>%
   filter(all(occupation %in% c(1,2)))
 
-right_age <- occupation %>%
+right_age <- data %>%
+  select(!starts_with("OCCUPA")) %>%
+  pivot_longer(cols = starts_with("AGE"), names_to = "year", names_prefix = "AGE", values_to = "age") %>%
+  group_by(ID) %>%
+  filter(all(age %in% c(18:65)))
+
+occupied_and_right_age <- left_join(occupied, right_age, by = c("ID", "year"))
+
+# Sample: Beanspruchungsfolge Niedergeschlagenheit P$$C17
+data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXC17"), year_start = "2008", year_end = "2017")
+depression <- data %>%
+  select(!starts_with("AGE")) %>%
+  pivot_longer(cols = starts_with("OCCUPA"), names_to = "year", names_prefix = "OCCUPA", values_to = "occupation") %>%
+  group_by(ID) %>%
+  filter(all(occupation %in% c(1,2)))
+
+right_age <- data %>%
   select(!starts_with("OCCUPA")) %>%
   pivot_longer(cols = starts_with("AGE"), names_to = "year", names_prefix = "AGE", values_to = "age") %>%
   group_by(ID) %>%
