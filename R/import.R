@@ -137,7 +137,7 @@ yearly_col_names <- function(cols, year) {
 
   if(cols[1] == "IDPERS") {
     for (i in 2:length(cols)) {
-      cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+      cols[i] <- paste0(stringr::str_split(cols[i], "XX")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "XX")[[1]][2])
     }
   }
   if(cols[1] == "IDHOUS") {

@@ -12,12 +12,18 @@
 #                         names_to = c('.value', 'year'),
 #                         names_pattern = '([A-Z]+)(\\d+)')
 #
-# #
 # occupied_and_right_age <- longer %>%
 #   group_by(ID) %>%
-#   filter(all(OCCUPA %in% c(1:4))) %>%
-#   filter(all(AGE %in% c(15:65))) %>%
+#   filter(all(OCCUPA %in% c(1,2))) %>%
+#   filter(all(AGE %in% c(18:65))) %>%
 #   rename(depression = P)
+#
+# death_of_a_loved_one <- occupied_and_right_age
+#
+# death_of_a_loved_one <- death_of_a_loved_one %>%
+#   group_by(ID) %>%
+#
+#
 #
 # # some exploratory plots
 # df <- occupied_and_right_age
@@ -37,8 +43,7 @@
 # ggplot(dep_per_year, aes(x = as.integer(year), y = depression)) +
 #   geom_line() +
 #   geom_smooth(method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_y_continuous(breaks = c(0:10), limits = c(0,10))
+#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017))
 #
 # # clustering..
 # depression_per_id_wide <- occupied_and_right_age %>%
@@ -76,78 +81,9 @@
 #   mutate(cluster_second_level = replace_na(cluster_second_level, "O"))
 #
 #
-# # Plot Clustering, Hierarchisch
+# # Plot Clustering
 #
 # dep_clustering <- depression_per_id_wide_no_na %>%
-#   select(-matches("cluster_\\d$")) %>%
-#   pivot_longer(-c(ID, cluster_second_level), names_to = "year", values_to = "depression") %>%
-#   mutate(year = as.numeric(paste0("20", year))) %>%
-#   ungroup()
-#
-# dep_clustering_median <- dep_clustering %>%
-#   group_by(cluster_second_level, year) %>%
-#   summarise(depression = median(depression))
-#
-# dep_clus_summary <- dep_clustering %>%
-#   group_by(cluster_second_level) %>%
-#   rename(cluster = cluster_second_level) %>%
-#   summarise(percentage = round(n()/nrow(.)*100))
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%"))
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   geom_line(data = dep_clustering, aes(group = ID), alpha = 0.02)
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   geom_line(data = dep_clustering %>% filter(cluster_second_level == "A"), aes(group = ID), alpha = 0.05)
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   geom_line(data = dep_clustering %>% filter(cluster_second_level == "B"), aes(group = ID), alpha = 0.05)
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   geom_line(data = dep_clustering %>% filter(cluster_second_level == "C"), aes(group = ID), alpha = 0.05)
-#
-# ggplot(dep_clustering_median, aes(x = year, y = depression, color = cluster_second_level)) +
-#   geom_smooth(se = FALSE, method = "lm") +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   geom_line(data = dep_clustering %>% filter(cluster_second_level == "O"), aes(group = ID), alpha = 0.02)
-#
-# dep_clustering_min_median_max <- dep_clustering %>%
-#   group_by(cluster_second_level, year) %>%
-#   summarise(ymin = quantile(depression, .01),
-#             ymedian = median(depression),
-#             ymax = quantile(depression, .99))
-#
-#
-# ggplot(dep_clustering_min_median_max, aes(x = year, y = ymedian, color = cluster_second_level)) +
-#   geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = cluster_second_level), alpha = 0.3) +
-#   geom_smooth(aes(fill = cluster_second_level), method = lm, se = FALSE) +
-#   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
-#   guides(fill = FALSE)
-#
-#
-#
-# # Alternative: 5 Cluster
-# dep_clustering <- depression_per_id_wide_no_na %>%
-#   mutate(cluster_second_level = cluster_5) %>%
-#   mutate(cluster_second_level = ifelse(cluster_second_level == "B", "A", cluster_second_level)) %>%
 #   select(-matches("cluster_\\d$")) %>%
 #   pivot_longer(-c(ID, cluster_second_level), names_to = "year", values_to = "depression") %>%
 #   mutate(year = as.numeric(paste0("20", year))) %>%
@@ -205,12 +141,12 @@
 #
 #
 # ggplot(dep_clustering_min_median_max, aes(x = year, y = ymedian, color = cluster_second_level)) +
-#   geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = cluster_second_level), alpha = 0.1) +
-#   geom_smooth(aes(fill = cluster_second_level), method = lm, se = FALSE) +
+#   geom_ribbon(aes(ymin = ymin, ymax = ymax, fill = cluster_second_level), alpha = 0.3) +
+#   geom_smooth(aes(fill = cluster_second_level), se = FALSE, method = "lm") +
 #   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017)) +
-#   scale_y_continuous(limits = c(0,10), name = "depression level") +
 #   scale_color_discrete(name = "cluster", labels = paste0(dep_clus_summary$cluster,": ", dep_clus_summary$percentage, "%")) +
 #   guides(fill = FALSE)
+#
 #
 #
 #
