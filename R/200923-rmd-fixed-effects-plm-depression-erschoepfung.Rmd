@@ -1,0 +1,94 @@
+---
+title: "PSY - Fixed Effects Model - Depression oder Erschöpfung"
+author: "Adrian Stämpfli"
+date: "9/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(shp)
+library(kml)
+library(kmlShape)
+library(lubridate)
+library(plm)       # Panel data analysis library
+library(car)       # Companion to applied regression
+library(gplots)    # Various programing tools for plotting data
+library(tseries)   # For timeseries analysis
+library(lmtest)    # For hetoroskedasticity analysis
+library(lme4)
+data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS",
+                         cols = c("IDPERS", "PXXC17", "PXXF51", "PXXW71A", "PXXW77", "PXXW87", "PXXW91", "PXXW94", "PXXW100", "PXXW216", "PXXW229", "PXXW603", "PXXW604", "PXXW605", "PXXW606", "PXXD29", "PXXL11", "PXXF50", "PXXF52", "PXXC08", "PXXC11", "PXXC19A", "PXXF08"), year_start = "2008", year_end = "2017")
+
+longer <- data %>%
+  pivot_longer(-ID,
+               names_to = c('.value', 'year', '.value'),
+               names_pattern = '([A-Z]*)(\\d{2})([A-Z]*\\d*)')
+
+paneldata <- pdata.frame(longer, index = c("ID", "year"))
+```
+
+## Datensatz
+
+Gemäss Dokument "Sample, Beanspruchungsfolgen, Belastungen"; Einzelne Variablen fehlen noch.
+
+*Lesehilfe: Die Variablennamen werden verändert angezeigt, statt beispielsweise P08W87 (Variable W87 aus Fragebogen P im Jahr 2008) steht PW87. Allfällige Buchstaben am Ende des Variablennamens (PXXW71A) fehlen.*
+
+*Lesehilfe 2: Im ersten Teil sind die ersten Zeilen des Datensatzes zu sehen, im zweiten Teil eine Zusammenfassung mit den Verteilungen*
+
+```{r}
+head(paneldata)
+summary(paneldata)
+```
+
+
+```{r}
+pd <- paneldata %>% 
+  select(-year) %>%
+  pivot_longer(-ID, names_to = "variable", values_to = "value") %>%
+  select(-ID)
+ggplot(pd) + geom_boxplot(aes(y = value)) + facet_wrap(~variable, scales = "free_y") + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+
+## Ermüdung, Erschöpfung (Variable PXXF51)
+
+Erschöpfung nach Arbeit um Sachen zu machen
+
+```{r}
+ermuedung <- plm(PF51 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata, model="within")
+summary(ermuedung)
+
+```
+
+## Depression (Variable PXXC17)
+
+Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
+
+```{r}
+depression <- plm(PC17 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata, model="within")
+summary(depression)
+
+```
+
+## Vergleich mit "einfacher" linearer Regression
+
+### Ermüedung
+
+```{r}
+erm_simple <- lm(PF51 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata)
+summary(erm_simple)
+```
+
+
+### Depression
+
+```{r}
+dep_simple <- lm(PC17 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata)
+summary(dep_simple)
+```
+
