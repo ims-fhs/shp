@@ -2,15 +2,16 @@ imsbasics::clc()
 library(tidyverse)
 library(shp)
 library(kml)
+library(kmlShape)
 library(lubridate)
 
-data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "WSTATXX", "AGEXX", "PXXC17"), year_start = "2008", year_end = "2017")
+data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "WSTATXX", "AGEXX", "PXXC17"), year_start = "2008", year_end = "2017")
 
 longer <- data
 longer <- longer %>%
   pivot_longer(-ID,
-                        names_to = c('.value', 'year'),
-                        names_pattern = '([A-Z]+)(\\d+)')
+               names_to = c('.value', 'year'),
+               names_pattern = '([A-Z]+)(\\d+)')
 
 occupied_and_right_age <- longer %>%
   group_by(ID) %>%
@@ -39,39 +40,28 @@ ggplot(dep_per_year, aes(x = as.integer(year), y = depression)) +
   scale_x_continuous(breaks = c(2008, 2010, 2015, 2017), minor_breaks = c(2008:2017))
 
 # clustering..
-depression_per_id_wide <- occupied_and_right_age %>%
-  select(-WSTAT, -AGE) %>%
-  pivot_wider(names_from = year, values_from = depression)
-depression_per_id_wide_no_na <- zoo::na.locf(depression_per_id_wide)
-occupied_and_right_age_clustered <- clusterLongData(as.data.frame(depression_per_id_wide_no_na))
-kml(occupied_and_right_age_clustered, c(2:8), 1)
-# x11(type = "Xlib"); choice(occupied_and_right_age_clustered)
-depression_per_id_wide_no_na$cluster_2 <- as.character(occupied_and_right_age_clustered@c2[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_3 <- as.character(occupied_and_right_age_clustered@c3[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_4 <- as.character(occupied_and_right_age_clustered@c4[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_5 <- as.character(occupied_and_right_age_clustered@c5[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_6 <- as.character(occupied_and_right_age_clustered@c6[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_7 <- as.character(occupied_and_right_age_clustered@c7[[1]]@clusters)
-depression_per_id_wide_no_na$cluster_8 <- as.character(occupied_and_right_age_clustered@c8[[1]]@clusters)
-# interessante Cluster: 2A, 3C, 5C, 5D, 6E, 7C, 7D, 7F, 8..?
+occupied_and_right_age <- occupied_and_right_age %>%
+  ungroup() %>%
+  select(ID, year, depression) %>%
+  mutate(year = as.numeric(year)) %>%
+  mutate(year = year - 8)
 
-# clustering 2..
-second_clustering <- depression_per_id_wide_no_na %>%
-  filter(cluster_2 == "B") %>%
-  select(-starts_with("cluster_"))
-second_clustering <- clusterLongData(as.data.frame(second_clustering))
-kml(second_clustering, c(2:8), 1)
-# x11(type = "Xlib"); choice(second_clustering)
-hierarchie2 <- data.frame(
-  ID = as.numeric(second_clustering@idAll),
-  cluster_second_level = as.character(second_clustering@c3[[1]]@clusters)
-)
-depression_per_id_wide_no_na <- left_join(
-  depression_per_id_wide_no_na,
-  hierarchie2,
-  by = "ID")
-depression_per_id_wide_no_na <- depression_per_id_wide_no_na %>%
-  mutate(cluster_second_level = replace_na(cluster_second_level, "O"))
+occupied_and_right_age_clustered <- cldsLong(as.data.frame(occupied_and_right_age))
+kmlShape(occupied_and_right_age_clustered, nbClusters = 3, timeScale = 0.001, toPlot = "none")
+plot(occupied_and_right_age_clustered)
+
+#
+# # clustering..
+# occupied_and_right_age_median_dep <- occupied_and_right_age %>%
+#   group_by(ID) %>%
+#   mutate(depression = depression - median(depression)) %>%
+#   ungroup() %>%
+#   mutate(depression = depression + 10)
+# occupied_and_right_age_clustered_median_dep <- cldsLong(as.data.frame(occupied_and_right_age_median_dep))
+# kmlShape(occupied_and_right_age_clustered_median_dep, nbClusters = 3, timeScale = .01, toPlot = "none")
+# plot(occupied_and_right_age_clustered_median_dep)
+
+occupied_and_right_age$cluster <- as.character(occupied_and_right_age_clustered@c2[[1]]@clusters)
 
 
 # Plot Clustering

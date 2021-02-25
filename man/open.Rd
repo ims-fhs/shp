@@ -2,18 +2,18 @@
 % Please edit documentation in R/dsl-v1.R
 \name{open}
 \alias{open}
-\title{open opens and checks a connection to the directory specified by path.}
+\title{opens the specified path. Checks, whether that path actually exists.}
 \usage{
 open(path)
 }
 \arguments{
-\item{path}{}
+\item{path}{The path, where the SHP data in SPSS format is stored}
 }
 \value{
-
+a path. Attention: The path is also stored to the global environment.
 }
 \description{
-open opens and checks a connection to the directory specified by path.
+opens the specified path. Checks, whether that path actually exists.
 }
 \examples{
 open("data/rawdata/Data SPSS")

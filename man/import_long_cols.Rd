@@ -5,11 +5,12 @@
 \title{import_long_cols}
 \usage{
 import_long_cols(
-  file = stop("Please provide a file name in the format xxx.sav"),
-  path = stop("Please provide the path to the file."),
-  cols = stop("Please provide a vector of the column numbers you want to import."),
+  file = stop("P_USER.sav"),
+ 
+    path = stop("~/FHS/5. Semester/BATHV/dataset_932(2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
+  cols = c("IDPERS", "PXXW604"),
   year_start = "1999",
-  year_end = "2017"
+  year_end = "2018"
 )
 }
 \arguments{
@@ -22,11 +23,11 @@ import_long_cols(
 import_long_cols
 }
 \examples{
-shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P99F09"))
-shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P99F09"), year_start = "1999", year_end = "2003")
+library(tidyverse)
+shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"))
+shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
 # work conditions stress
-shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
-shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
+shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
+shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
 # interference work - private
-work_life_balance <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04F50"), year_start = "2004", year_end = "2017")
 }

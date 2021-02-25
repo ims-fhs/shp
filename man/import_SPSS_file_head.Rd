@@ -5,8 +5,9 @@
 \title{import_SPSS_file_head}
 \usage{
 import_SPSS_file_head(
-  file = stop("Please provide a file name in the format xxx.sav"),
-  path = stop("Please provide the path to the file.")
+  file = stop("SHP99_P_USER.sav"),
+ 
+    path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")
 )
 }
 \arguments{
@@ -19,7 +20,7 @@ import_SPSS_file_head(
 import_SPSS_file_head
 }
 \examples{
-shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
+shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004")
 }

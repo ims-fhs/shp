@@ -24,4 +24,5 @@ open(path) \%>\% longitudinal("PXXF50") \%>\% cluster() \%>\% cross_sectional("A
 data <- open(path) \%>\% longitudinal("PXXF50") \%>\% cluster()
 data \%>\% cross_sectional("AGE10") \%>\% explain()
 data \%>\% cross_sectional("SEX10") \%>\% explain()
+open(path) \%>\% longitudinal("PXXF50") \%>\% cluster(nr_clusters = 4) \%>\% cross_sectional("P10W39") \%>\% explain()
 }

@@ -10,8 +10,8 @@
 #' open("data/rawdata/Data QWERTZ")
 open <- function(path) {
   assertthat::assert_that(dir.exists(path))
-  assertthat::assert_that(dir.exists(paste0(path, "/SHP-Data-W1-W19-SPSS")))
-  assertthat::assert_that(dir.exists(paste0(path, "/SHP-Data-W1-W19-SPSS/W1_1999")))
+  assertthat::assert_that(dir.exists(paste0(path, "/SHP-Data-W1-W20-SPSS")))
+  assertthat::assert_that(dir.exists(paste0(path, "/SHP-Data-W1-W20-SPSS/W1_1999")))
   assertthat::assert_that(assertthat::is.string(path))
   path <<- path
   return(path)
@@ -35,13 +35,13 @@ open <- function(path) {
 #' open(path) %>% longitudinal("PXXC75")
 longitudinal <- function(data, var_name, path. = path) {
   # browser()
-  available <- years_available("P_USER.sav", paste0(path., "/SHP-Data-W1-W19-SPSS"), var_name)
+  available <- years_available("P_USER.sav", paste0(path., "/SHP-Data-W1-W20-SPSS"), var_name)
   available$available <- with(rle(available$available), rep(seq_along(values) == which.max(lengths * values), lengths))
   years <- as.numeric("1999"):as.numeric("2017")
   years <- years[available$available]
   assertthat::assert_that(length(years) > 1, msg = "The data specified is not available for more than one year in a row. Try another variable.")
   print(paste0("Longitudinal available for years: ", min(years), " - ", max(years)))
-  data <- import_long_cols("P_USER.sav", paste0(path., "/SHP-Data-W1-W19-SPSS"), cols = c("IDPERS", var_name), year_start = as.character(min(years)), year_end = as.character(max(years)))
+  data <- import_long_cols("P_USER.sav", paste0(path., "/SHP-Data-W1-W20-SPSS"), cols = c("IDPERS", var_name), year_start = as.character(min(years)), year_end = as.character(max(years)))
   return(data)
 }
 
@@ -65,7 +65,7 @@ longitudinal <- function(data, var_name, path. = path) {
 #' data <- open(path) %>% longitudinal("PXXF50") %>% cluster() %>% cross_sectional("AGE10")
 #' open(path) %>% cross_sectional("P17W39")
 cross_sectional <- function(data, var_name, path. = path) {
-  path. <- paste0(path., "/SHP-Data-W1-W19-SPSS")
+  path. <- paste0(path., "/SHP-Data-W1-W20-SPSS")
   y2d <- stringi::stri_sub(gsub("\\D", "", var_name), 1, 2)
   y4d <- as.integer(paste0(ifelse(y2d >= "90", "19", "20"), y2d))
 

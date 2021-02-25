@@ -1,14 +1,23 @@
 imsbasics::clc()
 library(tidyverse)
 library(shp)
-library(vcrpart)
+library(kml)
+library(kmlShape)
+library(lubridate)
+library(plm)       # Panel data analysis library
+library(car)       # Companion to applied regression
+library(gplots)    # Various programing tools for plotting data
+library(tseries)   # For timeseries analysis
+library(lmtest)    # For hetoroskedasticity analysis
+library(lme4)
 
-data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS",
+
+data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
                          cols = c("IDPERS", "PXXC17", "PXXF51", "PXXW71A", "PXXW77", "PXXW87", "PXXW91", "PXXW94", "PXXW100", "PXXW216", "PXXW229", "PXXW603", "PXXW604", "PXXW605", "PXXW606", "PXXD29", "PXXL11", "PXXF50", "PXXF52", "PXXC08", "PXXC11", "PXXC19A", "PXXF08"), year_start = "2008", year_end = "2017")
 
 data_complete <- data
 # data_complete <- data %>%
-# filter(complete.cases(.))
+  # filter(complete.cases(.))
 
 
 longer <- data_complete %>%
@@ -25,12 +34,5 @@ summary(depression)
 
 beepr::beep()
 
-data1 <- longer
-data1 <- data1[1:100, ]
-data1$PC17 <- .1 * data1$PC17
 
-tvcglm(PC17 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=data1, family = binomial())
-
-data1$PF51 <- .1 * data1$PF51
-tvcglm(PF51 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=data1, family = binomial())
 

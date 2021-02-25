@@ -5,10 +5,10 @@
 \title{import_cols}
 \usage{
 import_cols(
-  file = stop("Please provide a file name in the format xxx.sav"),
-  path = stop("Please provide the path to the file."),
+  file = stop("SHP99_P_USER.sav"),
  
-    cols = stop("Please provide a vector of the column numbers or column names you want to import.")
+    path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
+  cols = stop(c("IDPERS", "P04W604"))
 )
 }
 \arguments{
@@ -21,8 +21,8 @@ import_cols(
 import_cols
 }
 \examples{
-shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c(2,3))
+shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c(2,3))
 difficulties to conciliate personal and professional life last 12 months
-shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
-shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
+shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
+shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
 }

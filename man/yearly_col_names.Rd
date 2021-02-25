@@ -16,6 +16,7 @@ yearly_col_names(cols, year)
 Title
 }
 \examples{
-yearly_col_names(c("IDPERS", "AXXA00"), 2012)
-yearly_col_names(c("IDHOUS", "HXXH01"), 2012)
+yearly_col_names(c("IDPERS", "AYYA00"), 2012)
+yearly_col_names(c("IDPERS", "SEXYY"), 2012)
+yearly_col_names(c("IDHOUS", "H$$H01"), 2012)
 }

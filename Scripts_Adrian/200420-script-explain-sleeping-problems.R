@@ -3,9 +3,9 @@
 # library(shp)
 # library(kml)
 #
-# head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
+# head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004")
 #
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXC06A"), year_start = "2004", year_end = "2017")
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXC06A"), year_start = "2004", year_end = "2017")
 # data <- data %>% filter(complete.cases(.))
 #
 # PXXC06A <- clusterLongData(data)
@@ -19,11 +19,11 @@
 #
 # data$cluster <- as.character(PXXC06A@c2[[1]]@clusters)
 #
-# age <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W12_2010", cols = c("IDPERS", "AGE10"))
+# age <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W12_2010", cols = c("IDPERS", "AGE10"))
 # names(age)[1] <- "ID"
 # data <- left_join(data, age)
 #
-# gender <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W12_2010", cols = c("IDPERS", "SEX10"))
+# gender <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W12_2010", cols = c("IDPERS", "SEX10"))
 # names(gender)[1] <- "ID"
 # data <- left_join(data, gender)
 #

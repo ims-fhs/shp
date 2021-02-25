@@ -5,8 +5,9 @@
 \title{import_id}
 \usage{
 import_id(
-  file = stop("Please provide a file name in the format xxx.sav"),
-  path = stop("Please provide the path to the file.")
+  file = stop("SHP99_P_USER.sav"),
+ 
+    path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/")
 )
 }
 \arguments{
@@ -19,5 +20,5 @@ import_id(
 import_id
 }
 \examples{
-shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
+shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
 }

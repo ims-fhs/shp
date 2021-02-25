@@ -7,9 +7,9 @@
 #' @export
 #'
 #' @examples
-#' shp99_p_user <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-import_SPSS_file <- function(file = stop("Please provide a file name in the format xxx.sav"),
-                             path = stop("Please provide the path to the file.")) {
+#' shp99_p_user <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+import_SPSS_file <- function(file = stop("SHP99_P_USER.sav"),
+                             path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")) {
   df <- foreign::read.spss(paste0(getwd(), "/", path, "/", file), use.value.labels = TRUE, to.data.frame = TRUE, max.value.labels = -1)
   assertthat::assert_that(
     assertthat::are_equal(class(df), "data.frame")
@@ -26,11 +26,11 @@ import_SPSS_file <- function(file = stop("Please provide a file name in the form
 #' @export
 #'
 #' @examples
-#' shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-#' shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-#' shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
-import_SPSS_file_head <- function(file = stop("Please provide a file name in the format xxx.sav"),
-                             path = stop("Please provide the path to the file.")) {
+#' shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+#' shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+#' shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004")
+import_SPSS_file_head <- function(file = stop("SHP99_P_USER.sav"),
+                                  path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")) {
   df <- foreign::read.spss(paste0(getwd(), "/", path, "/", file), use.value.labels = TRUE, to.data.frame = TRUE, max.value.labels = -1)
   assertthat::assert_that(
     assertthat::are_equal(class(df), "data.frame")
@@ -48,9 +48,10 @@ import_SPSS_file_head <- function(file = stop("Please provide a file name in the
 #' @export
 #'
 #' @examples
-#' shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-import_id <- function(file = stop("Please provide a file name in the format xxx.sav"),
-                      path = stop("Please provide the path to the file.")) {
+#' shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+import_id <- function(file = stop("SHP99_P_USER.sav"),
+                      path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"))
+{
   df <- import_SPSS_file(file, path)
   df <- df[, 2]
   return(df)
@@ -66,13 +67,13 @@ import_id <- function(file = stop("Please provide a file name in the format xxx.
 #' @export
 #'
 #' @examples
-#' shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c(2,3))
+#' shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c(2,3))
 #' difficulties to conciliate personal and professional life last 12 months
-#' shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
-#' shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
-import_cols <- function(file = stop("Please provide a file name in the format xxx.sav"),
-                      path = stop("Please provide the path to the file."),
-                      cols = stop("Please provide a vector of the column numbers or column names you want to import.")) {
+#' shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
+#' shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
+import_cols <- function(file = stop("SHP99_P_USER.sav"),
+                        path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
+                        cols = stop(c("IDPERS", "P04W604"))) {
   df <- import_SPSS_file(file, path)
   assertthat::assert_that(all(cols %in% names(df)))
   df <- df[, cols]
@@ -92,19 +93,18 @@ import_cols <- function(file = stop("Please provide a file name in the format xx
 #'
 #' @examples
 #' library(tidyverse)
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXC17"))
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "2010")
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"))
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
 #' # work conditions stress
-#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
-#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
+#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
+#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
 #' # interference work - private
-#' work_life_balance <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04F50"), year_start = "2004", year_end = "2017")
-import_long_cols <- function(file = stop("Please provide a file name in the format xxx.sav"),
-                                     path = stop("Please provide the path to the file."),
-                                     cols = stop("Please provide a vector of the column numbers you want to import."),
-                                     year_start = "1999",
-                                     year_end = "2017") {
+import_long_cols <- function(file = stop("P_USER.sav"),
+                             path = stop("~/FHS/5. Semester/BATHV/dataset_932(2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
+                             cols = c("IDPERS", "PXXW604"),
+                             year_start = "1999",
+                             year_end = "2018")
+{
   years <- as.numeric(year_start):as.numeric(year_end)
   data <- list()
   for(i in seq_along(years)) {
@@ -129,8 +129,9 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
 #' @export
 #'
 #' @examples
-#' yearly_col_names(c("IDPERS", "AXXA00"), 2012)
-#' yearly_col_names(c("IDHOUS", "HXXH01"), 2012)
+#' yearly_col_names(c("IDPERS", "AYYA00"), 2012)
+#' yearly_col_names(c("IDPERS", "SEXYY"), 2012)
+#' yearly_col_names(c("IDHOUS", "H$$H01"), 2012)
 yearly_col_names <- function(cols, year) {
   assertthat::assert_that(assertthat::is.string(cols[1]))
   assertthat::assert_that(assertthat::is.number(year))
@@ -140,13 +141,15 @@ yearly_col_names <- function(cols, year) {
 
   if(cols[1] == "IDPERS") {
     for (i in 2:length(cols)) {
-      cols[i] <- paste0(stringr::str_split(cols[i], "XX")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "XX")[[1]][2])
+      cols[i] <- paste0(stringr::str_split(cols[i], "YY")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "YY")[[1]][2])
     }
   }
   if(cols[1] == "IDHOUS") {
     cols[1] <- paste0(cols[1], as.character(sprintf('%02d', year %% 100)))
     for (i in 2:length(cols)) {
-      cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
+      cols[i] <- paste0(stringr::str_split(cols[i], "YY")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "YY")[[1]][2])
+
+      #cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
     }
   }
 

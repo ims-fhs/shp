@@ -13,7 +13,7 @@
 #   filter(complete.cases(.))
 #
 # # Import potentially explaining variables
-# explaining_variables <- import_cols("SHP08_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W10_2008", cols = c("IDPERS", "SEX08", "EDUCAT08", "P08L11", "P08F50", "P08F08", "P08W77", "P08D29"))
+# explaining_variables <- import_cols("SHP08_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W10_2008", cols = c("IDPERS", "SEX08", "EDUCAT08", "P08L11", "P08F50", "P08F08", "P08W77", "P08D29"))
 # explaining_variables <- explaining_variables %>% rename(ID = IDPERS)
 #
 # depression_explained <- left_join(depression_explained, explaining_variables)
