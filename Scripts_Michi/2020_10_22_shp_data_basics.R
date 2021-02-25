@@ -29,7 +29,7 @@ varlist <- list()
 for (i in seq(1,20)) {
   year_string <- as.character(sprintf('%02d', (1998+i) %% 100))
   file <- paste0("SHP", year_string ,"_P_USER.sav")
-  path <- paste0("data/dataset_932_V.3.2.1/Data_SPSS/SHP-Data-W1-W20-SPSS/W",i,"_",1998+i)
+  path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W",i,"_",1998+i)
   wave <- import_SPSS_file(file = file, path = path)
   # Extract variables of the wave with corresponding label -> paste them together
   vars <- attr(wave, which = "variable.labels")
@@ -63,6 +63,7 @@ xlsx::write.xlsx(df, file =  "data/variable_availvability_per_wave.xlsx",
                  sheetName = "All Variables", row.names = FALSE)
 
 for (i in seq(1,20)) {
+  print(i)
   partial_df <- df[df$sum >= i, ]
   xlsx::write.xlsx(partial_df, file =  "data/variable_availvability_per_wave.xlsx",
                    sheetName = paste0(">=",i), row.names = FALSE, append = TRUE)
