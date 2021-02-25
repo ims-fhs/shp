@@ -1,0 +1,317 @@
+---
+title: "SNF - PSY - Paper I - Draft"
+author: "Adrian Stämpfli"
+date: "10/20/2020"
+output:
+  word_document: default
+  html_document: default
+---
+
+# Einleitung
+
+- Ursprünglicher Fokus der Arbeitswissenschaften: Erhalt der körperlichen Gesundheit der Arbeitnehmenden (Paulus 2018)
+
+- Mit Wandel der Arbeit im postindustriellen Zeitalter und in der aktuellen Diskussion um die Zukunft und Entwicklung der Arbeitswelt gerät zunehmend die psychische Gesundheit in den Fokus (Paulus 2018)
+
+- Der Erhalt der psychischen Gesundheit wird zu einer zentralen Herausforderung (Paulus 2018)
+
+- Traditionelle Systemabgrenzung der Arbeitswissenschaft besteht darin, nur die Situation am Arbeitsplatz zu betrachten. Zunehmend wird es jedoch nötig (aufgrund Emanzipation, Beschleunigung, Deregulierung etc.) die Systemgrenzen zu erweitern.
+
+- Arbeitswissenschaften haben ein Interesse zu verstehen, welche lebenslagenspezifische Belastungen in Arbeits- und Caresphäre einen Einfluss auf die psychische Gesundheit der Arbeitnehmenden haben.
+
+# Methodisches Vorgehen
+
+- Wir untersuchen die empirischen Zusammenhänge zwischen den relevanten Belastungen in Arbeits- und Caresphäre und den psychischen Beanspruchungsfolgen. So leisten wir einen Beitrag zur Weiterentwicklung der *Gefährdungsbeurteilung* im Hinblick auf i) die Integration der psychischen Gesundheit und ii) die Integration sowohl der Care- als auch der Arbeitssphäre. (Paulus 2018, Beck et. al 2012)
+
+- Dazu nutzen wir die die Daten des Schweizer Haushaltspanels. Dies bietet zwei entscheidende Vorteile im Hinblick auf die obengenannte Weiterentwicklung:
+
+    i) Die Daten sind repräsentativ für die Schweizer Bevölkerung (eine zentrale Forderung von Beck et. al 2012);
+    i) Da Individuen jährlich befragt werden, ist es erstmals möglich Veränderungen bei den Belastungen mit Veränderungen in den Beanspruchungsfolgen zu vergleichen. Dies ist ein erster Schritt hin zur Weiterentwicklung der Gefährdungsbeurteilung um eine Prozesssicht (Janetzke und Ertel (2016))
+
+- Daraus leiten wir die zentralen Forschungsfragen für den folgenden Beitrag ab:
+
+    i) *Welche Veränderung in der Belastungskonstellation von Individuen in ihrer Erwerbs- und Caretätigkeit korrelieren am stärksten mit Veränderungen in der psychischen Gesundheit derselben Individuen?*
+    i) *Welche Veränderungen wirken dabei gesundheitserhaltend, welche gesundheitsschädigend?*
+
+## Auswahl und Operationalisierung der Beanspruchungsfolgen
+
+- Folgende Beanspruchungsfolgen wurden besonders häufig mit Arbeitsbelastungen in Zusammenhang gebracht (nach Häufigkeit der Nennung aufgelistet):
+    -	Depression u. depressive Erkrankung (mit Abstand am meisten Nennungen)
+    -	Kardio-vaskuläre Erkrankungen
+    -	Angst, Angsterkrankung
+    -	Ermüdung/Erschöpfung
+    -	Stress
+    -	Erkrankung/Verspannung des Muskel-Skelett-Apparats (Quelle?)
+    
+- Fokus auf die Beanspruchungsfolgen Depression und Ermüdung/Erschöpfung. Depression sind ein gutes Item, da sich Depressionen häufig über einen längeren Zeitraum entwickeln und z.B. folgen von langanhaltendem Stress sein können (Quelle?).
+
+###	Depression (u. Angst/Angsterkrankung)
+
+- Im SHP gibt es eine Frage, wo die Personen nach der Häufigkeit der Empfundenen von Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression gefragt werden (0 Nie bis 10 immer).
+
+- Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit	W1-W21
+
+
+###	Ermüdung/Erschöpfung
+
+- Es stellt sich die Frage, ob es sich bei Ermüdung/Erschöpfung tatsächlich um (langfristige) Beanspruchungsfolgen im Sinne des Projektes handelt. Im SHP gibt es eine Variable, wo gefragt wird, ob man nach der Arbeit zu erschöpft ist andere Dinge zu tun (Wertebereich 0-10).
+
+- Erschöpfung nach Arbeit um Sachen zu machen	W4-W21
+
+## Auswahl und Operationalisierung der Belastungsfaktoren
+
+###	Sozio-demographische Variablen
+
+- Geschlecht, SEX\$\$,	W1-W21
+- Höchster Bildungsabschluss, EDUCAT\$\$, Höchstes erlangtes Ausbildungsniveau, raster + individuell 11 codes	W1-W21
+-	Partnerschaft, P\$\$D29, Partner: ja, nein	W1-W21
+-	Haushaltsäquivalenzeinkommen, I\$\$EQON,	Haushaltsäquivalenzeinkommen	W1-W21
+-	Schweizer Staatsbürgerschaft/keine Schweizer Staatsbürgerschaft, NAT_1_\$\$
+
+###	Arbeitsbelastungen
+
+####	Arbeitsinhalt/Arbeitsaufgabe
+
+-	Vollständigkeit der Aufgabe, P\$\$W229, Aktuelle Haupttätigkeit: Zufriedenheit: Interessante Aufgaben	W1, W6-W21
+-	Handlungsspielraum, P\$\$W71A, Aktuelle Haupttätigkeit: Art der Arbeitszeit	W6-W21
+- P\$\$W91, Aktuelle Haupttätigkeit: Einbezug bei Entscheidungen/Meinungen	W1-W21
+
+
+####	Verantwortung
+
+- P\$\$W87, Aktuelle Haupttätigkeit: Arbeitskontrolle anderer Personen	W1-W21
+
+####	Qualifikation
+
+- P\$\$W100, Aktuelle Haupttätigkeit: Qualifikation für Arbeit	W1-W21
+
+####	Arbeitszeit
+
+- P\$\$W77, Aktuelle Haupttätigkeit: Anzahl Arbeitsstunden pro Woche	W1-W21
+- P\$\$W216, Aktuelle Haupttätigkeit: Nachtarbeit	W1, W6-W21
+
+####	Arbeitsablauf – Arbeitsintensität
+
+- P\$\$W603, Aktuelle Haupttätigkeit: Arbeitsrythmus: Intensität	W6-W21
+- P\$\$W604, Aktuelle Haupttätigkeit: Arbeitsbedingungen: Stress	W6-W21
+
+###	Soziale Beziehungen
+
+- Soziale Beziehungen zu den Kollegen, P\$\$W94, Aktuelle Haupttätigkeit: Zufriedenheit: Arbeitsatmosphäre	W1-W21
+
+###	Arbeitsumgebung
+
+- Physikalische und chemische Faktoren, P\$\$W605
+Aktuelle Haupttätigkeit: Arbeitsrythmus: Lärm, Schmutz	W6-W21
+
+- Physische Faktoren, P\$\$W606, Aktuelle Haupttätigkeit: Arbeitsrythmus: ermüdende Körperhaltung	W6-W21
+
+##	Privatleben Belastungen
+
+-	Kinderbetreuung, Theoretisch rekonstruierbar im SHP
+- Tod einer nahestehenden Person, P\$\$L11, Tod nahestehender Person: ja, nein	W2-W21
+- Hausarbeit Stunden pro Woche, P\$\$F08, Hausarbeit: Stunden pro Woche	W1-W21
+-	Empfundene Work-Life-Balance, P\$\$F50, Beeinträchtigung Arbeit <-> private Aktivitäten /Familie	W4-W21
+- P\$\$F51, Erschöpfung nach Arbeit um Sachen zu machen	W4-W21
+- P\$\$F52, Schwierigkeit nach Arbeit abzuschalten	W4-W21
+
+## Gesundheit
+
+- P\$\$C08, Einschränkungen wegen Gesundheitszustand bei täglichen Aktivitäten: Ausmass
+- P\$\$C11, Anzahl Tage die von Gesundheitsproblemen betroffen waren: Letzte 12 Monate
+- P\$\$C19A, Chronische Krankheit oder längerfristiges gesundheitliches Problem	W6-W21
+
+## Datengrundlage
+
+- SHP Daten
+
+- Das Hauptziel des Schweizer Haushalt-Panel (SHP) ist die Beobachtung des sozialen Wandels und der Lebensbedingungen der Bevölkerung in der Schweiz (Tillmann et al. 2016). Es handelt sich um eine jährlich wiederholte Panelstudie, die eine Zufallsstichprobe von privaten Haushalten in der Schweiz begleitet und deren Mitglieder hauptsächlich telefonisch interviewt.
+
+- Das SHP wird vom Schweizerischen Nationalfonds zur Förderung der wissenschaftlichen Forschung finanziell unterstützt und verfügt über einen schweizweit einmaligen Bestand an längsschnittlichen Daten. Die Studie deckt zudem eine breite Palette sozialwissenschaftlicher Fragestellungen und Ansätze ab. Die Datenerhebung startete im Jahr 1999 mit einer ersten Stichprobe von 5’074 Haushalten, beziehungsweise 12’931 Haushaltsmitgliedern. Im Jahr 2004 wurde eine zweite Stichprobe von 2’538 Haushalten und 6’569 Individuen hinzugefügt; und seit 2013 gibt es eine dritte Stichprobe mit 4’093 Haushalten und 9’945 Individuen. Die Rücklaufquoten sind in allen drei Stichproben ausgezeichnet.
+
+- Die Daten stehen der Forschungsgemeinschaft kostenlos auf FORSbase zur Verfügung.
+
+- (https://forscenter.ch/projekte/swiss-household-panel/?lang=de)
+
+### Sample
+
+- Sample: Eingrenzen auf Personen im Erwerbsprozess. Alter 15 - 65.
+- Möglichst viele Wellen: Aufgrund der Variablenwahl W6 - W21, 15 Jahre
+
+
+## Längsschnittfragestellung und das Fixed Effects Regressionsverfahren
+
+- Als Längsschnittfragestellungen werden solche Fragen bezeichnet, bei denen die Auswirkung einer intraindividuellen Veränderung fokussiert wird.(Giesselmann & Windzio 2012)
+
+- Wer beispielsweise nach dem Zusammenhang zwischen der Belastung Verlust einer nahestehenden Person* und der Beanspruchungsfolge Depression fragt, kann dies auf zwei Arten tun: Er kann (i) nach der Differenz in der Variable Depression zwischen Personen mit einer unterschiedlichen Anzahl an Verlusten nahestehender Personen fragen, oder (ii) nach der Differenz in der Variable Depression vor und nach dem Verlust einer nahestehenden Person. Im ersten Fall liegt eine Querschnitts- im zweiten eine Längs- schnittfragestellung vo (Giesselmann und Windzio 2012). 
+
+- Unsere Forschungsfrage implizieren die Betrachtung als Längsschnittfragestellung, also Fall ii).
+
+- Das Fixed Effects Verfahren erlaubt es genau diese Fragestellung zu untersuchen. Es ist das Standardverfahren zur Untersuchung derartiger Fragestellungen in den Sozialwissenschaften (Giesselmann & Windzio 2012).
+
+- Das Fixed Effects Verfahren entmittelt die Daten individuell. Das heisst, für jede Person im Datensatz wird für jede Variable des Datensatzes der Mittelwert berechnet und danach die Messwerte um den Mittelwert korrigiert (Giesselmann & Windzio 2012).
+
+- Übrig bleiben demnach die intraindividuellen Veränderungen der Variablen und ihre zeitliche Abfolge. Die nachfolgende (lineare) Regressionsanalyse ermittelt demzufolge, wie stark die Veränderung einer Belastungsvariable $x_i$ mit der Veränderung einer Beanspruchungsfolge $y_i$ korreliert sind.
+
+- Dies erlaubt eine geeignete Replik auf die zentrale Forschungsfrage.
+
+# Ergebnisse
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(shp)
+library(kml)
+library(kmlShape)
+library(lubridate)
+library(plm)       # Panel data analysis library
+library(car)       # Companion to applied regression
+library(gplots)    # Various programing tools for plotting data
+library(tseries)   # For timeseries analysis
+library(lmtest)    # For hetoroskedasticity analysis
+library(lme4)
+data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS",
+                         cols = c("IDPERS", "PXXC17", "PXXF51", "PXXW71A", "PXXW77", "PXXW87", "PXXW91", "PXXW94", "PXXW100", "PXXW216", "PXXW229", "PXXW603", "PXXW604", "PXXW605", "PXXW606", "PXXD29", "PXXL11", "PXXF50", "PXXF52", "PXXC08", "PXXC11", "PXXC19A", "PXXF08"), year_start = "2008", year_end = "2017")
+
+longer <- data %>%
+  pivot_longer(-ID,
+               names_to = c('.value', 'year', '.value'),
+               names_pattern = '([A-Z]*)(\\d{2})([A-Z]*\\d*)')
+
+paneldata <- pdata.frame(longer, index = c("ID", "year"))
+```
+
+## Datensatz
+
+Gemäss Dokument "Sample, Beanspruchungsfolgen, Belastungen"; Einzelne Variablen fehlen noch.
+
+*Lesehilfe: Die Variablennamen werden verändert angezeigt, statt beispielsweise P08W87 (Variable W87 aus Fragebogen P im Jahr 2008) steht PW87. Allfällige Buchstaben am Ende des Variablennamens (PXXW71A) fehlen.*
+
+*Lesehilfe 2: Im ersten Teil sind die ersten Zeilen des Datensatzes zu sehen, im zweiten Teil eine Zusammenfassung mit den Verteilungen*
+
+```{r}
+head(paneldata)
+summary(paneldata)
+sum(is.na(paneldata))/(sum(is.na(paneldata)) + sum(!is.na(paneldata)))
+```
+
+
+```{r}
+pd <- paneldata %>% 
+  select(-year) %>%
+  pivot_longer(-ID, names_to = "variable", values_to = "value") %>%
+  select(-ID)
+ggplot(pd) + geom_boxplot(aes(y = value)) + facet_wrap(~variable, scales = "free_y") + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+```
+
+
+## Ermüdung, Erschöpfung (Variable PXXF51)
+
+Die untersuchte Variable beschreibt, inwiefern man nach der Arbeit ermüdet oder erschöpt ist und daher wenig Energie für weitere Aktivitäten hat.
+
+### Übersicht über die Variable
+
+Das folgende Histogramm zeigt die Verteilung der MErkmalsausprägung über die gesamten Paneldaten:
+
+```{r}
+ggplot(longer) +
+  geom_histogram(aes(x = PF51), bins = 11)
+```
+Die Variable verändert sich über die Jahre (in der gesamten Population) nicht.
+
+```{r}
+ggplot(longer, aes(x = as.numeric(year), y = PF51)) + 
+  geom_jitter(alpha = 0.01) +
+  geom_smooth(, method = "lm", se = FALSE)
+```
+
+
+### Fixed Effects Modell
+
+```{r}
+ermuedung <- plm(PF51 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata, model="within")
+summary(ermuedung)
+
+```
+
+### Genauere Untersuchung der stark signifikanten Zusammenhänge
+
+- Variablen PF50 und PF52 weniger interessant, da quasi dasselbe
+- PW603 - PW606
+
+```{r}
+fe1 <- longer %>% 
+  select(PF51, ID, PW606) %>% 
+  group_by(ID) %>%
+  mutate(PF51_mean = mean(PF51), na.rm = TRUE) %>%
+  mutate(PF51_FE = PF51 - PF51_mean) %>%
+  mutate(PW606_mean = mean(PW606), na.rm = TRUE) %>%
+  mutate(PW606_FE = PW606 - PW606_mean) %>%
+  ungroup() %>%
+  select(PF51_FE, PW606_FE) 
+
+ggplot(fe1) +
+  geom_jitter(aes(x = PW606_FE, y = PF51_FE), alpha = 0.01) +
+  geom_smooth(aes(x = PW606_FE, y = PF51_FE), se = FALSE)
+```
+
+```{r}
+fe1 <- longer %>% 
+  select(PF51, ID, PC08) %>% 
+  group_by(ID) %>%
+  mutate(PF51_mean = mean(PF51), na.rm = TRUE) %>%
+  mutate(PF51_FE = PF51 - PF51_mean) %>%
+  mutate(PC08_mean = mean(PC08), na.rm = TRUE) %>%
+  mutate(PC08_FE = PC08 - PC08_mean) %>%
+  ungroup() %>%
+  select(PF51_FE, PC08_FE) 
+
+ggplot(fe1) +
+  geom_jitter(aes(x = PC08_FE, y = PF51_FE), alpha = 0.01) +
+  geom_smooth(aes(x = PC08_FE, y = PF51_FE), se = FALSE, method = "lm")
+```
+
+## Depression (Variable PXXC17)
+
+Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
+
+
+### Übersicht über die Variable
+
+Das folgende Histogramm zeigt die Verteilung der MErkmalsausprägung über die gesamten Paneldaten:
+
+```{r}
+ggplot(longer) +
+  geom_histogram(aes(x = PC17), bins = 11)
+```
+Die Variable verändert sich über die Jahre (in der gesamten Population) kaum.
+
+```{r}
+ggplot(longer, aes(x = as.numeric(year), y = PC17)) + 
+  geom_jitter(alpha = 0.01) +
+  geom_smooth(, method = "lm", se = FALSE)
+```
+
+### Fixed Effects Modell
+
+```{r}
+depression <- plm(PC17 ~ PD29 + PW229 + PW71 + PW77 + PW87 + PW91 + PW94 + PW100 + PW216 + PW603 + PW604 + PW605 + PW606 + PL11 + PF08 + PF50 + PF52 + PC08 + PC11 + PC19, data=paneldata, model="within")
+summary(depression)
+
+```
+
+
+
+# Fazit und Bedarf für weitere Forschung
+
+
+
+- Die vorgestellte *Prozesssicht* ist noch sehr einfach. Eine Erweiterung der Analyse um die explizite Betrachtung der typischer Verläufe im Längsschnitt ist daher wünschenswert. Hierbei sind weiter zwei Fälle besonders interessant:
+
+    i) Eine Analyse, welche die Individuen vorab (anhand der zeitlichen Veränderung der Beanspruchungsfolgen) in verschiedene typische Verlaufsmuster einteilt, um danach die je Verlaufsmuster typischen Belastungsfaktoren mit dem FE Verfahren zu bestimmen;
+    ii) Eine Erweiterung des vorgestellten Verfahrens um eine eigentliche Prozesssicht, welche die Phasen Antizipation, Reaktion und Adaption unterscheidet (Quelle?). Hierzu muss das Datenset transformiert werden.
+
+- Im Sinne der Subjektwissenschft ist die vorgestellte Gefährdungsbeurteilung weiterhin *blind* hinsichtlich der Bedeutung bestehender Belastungen und der Begründung nachfolgender (Re)aktionen. Es besteht also Bedarf die Handlungsregulationsmuster, welche die Bedingungen bedeuten und (Re)aktionen begründen, weiter zu untersuchen. Ein hierzu geeignetes Verfahren ist die systemdynamische Modellierung. Es gibt bereits Ansätze (z.B. Homer 1985).
