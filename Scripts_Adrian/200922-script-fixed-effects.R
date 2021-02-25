@@ -12,7 +12,7 @@ library(lmtest)    # For hetoroskedasticity analysis
 library(lme4)
 
 
-data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS",
+data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
                          cols = c("IDPERS", "PXXF51", "PXXW229", "PXXC17", "AGEXX", "WSTATXX", "PXXD29"), year_start = "2008", year_end = "2017")
 
 data_complete <- data %>%

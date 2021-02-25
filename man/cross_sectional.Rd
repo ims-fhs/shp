@@ -19,7 +19,10 @@ cross_sectional: import a cross-sectional variable
 imsbasics::clc()
 library(tidyverse); library(shp); library(kml)
 path <- "data/rawdata/Data SPSS"
-open(path) \%>\% longitudinal("PXXF50") \%>\% cross_sectional("AGE10")
+open(path) \%>\% cross_sectional("AGE04")
+open(path) \%>\% cross_sectional("AGE10")
+open(path) \%>\% cross_sectional("AGE17")
 open(path) \%>\% longitudinal("PXXF50") \%>\% cluster() \%>\% cross_sectional("AGE10")
 data <- open(path) \%>\% longitudinal("PXXF50") \%>\% cluster() \%>\% cross_sectional("AGE10")
+open(path) \%>\% cross_sectional("P17W39")
 }

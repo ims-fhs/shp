@@ -4,7 +4,7 @@
 #
 # # Autonomie -> Selbstwirksamkeitserwartung
 # # Versuch 1
-# aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W17_2015", cols = c("IDPERS", "P15W87", "P15C71"))
+# aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015", cols = c("IDPERS", "P15W87", "P15C71"))
 # aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 # aut_vs_sel <- aut_vs_sel %>%
 #   mutate(P15W87 = ifelse(P15W87 == 2, 0, 1)) %>%
@@ -35,7 +35,7 @@
 #
 # # Autonomie -> Selbstwirksamkeitserwartung
 # # Versuch 2
-# aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W17_2015", cols = c("IDPERS", "P15W87", "P15C71", "P15W228"))
+# aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015", cols = c("IDPERS", "P15W87", "P15C71", "P15W228"))
 # aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 # aut_vs_sel <- aut_vs_sel %>%
 #   mutate(P15W87 = ifelse(P15W87 == 2, 0, 1)) %>%

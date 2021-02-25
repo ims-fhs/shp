@@ -10,7 +10,7 @@ library(tidyverse)
 #' @export
 #'
 #' @examples
-#' shp99_p_user <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
+#' shp99_p_user <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
 import_SPSS_file <- function(file = stop("SHP99_P_USER.sav"),
                              path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")) {
   df <- foreign::read.spss(paste0(getwd(), "/", path, "/", file), use.value.labels = TRUE, to.data.frame = TRUE, max.value.labels = -1)
@@ -32,9 +32,9 @@ import_SPSS_file <- function(file = stop("SHP99_P_USER.sav"),
 #' @export
 #'
 #' @examples
-#' shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-#' shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
-#' shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004")
+#' shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+#' shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+#' shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004")
 import_SPSS_file_head <- function(file = stop("SHP99_P_USER.sav"),
                                   path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")) {
   df <- foreign::read.spss(paste0(getwd(), "/", path, "/", file), use.value.labels = TRUE, to.data.frame = TRUE, max.value.labels = -1)
@@ -56,9 +56,9 @@ import_SPSS_file_head <- function(file = stop("SHP99_P_USER.sav"),
 #' @export
 #'
 #' @examples
-#' shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
+#' shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
 import_id <- function(file = stop("SHP99_P_USER.sav"),
-                      path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/")) 
+                      path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"))
 {
   df <- import_SPSS_file(file, path)
   df <- df[, 2]
@@ -77,14 +77,14 @@ import_id <- function(file = stop("SHP99_P_USER.sav"),
 #' @export
 #'
 #' @examples
-#' shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c(2,3))
+#' shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c(2,3))
 #' difficulties to conciliate personal and professional life last 12 months
-#' shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
-#' shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
+#' shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
+#' shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
 import_cols <- function(file = stop("SHP99_P_USER.sav"),
                         path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
-                        cols = stop(c("IDPERS", "P04W604"))) 
-  
+                        cols = stop(c("IDPERS", "P04W604")))
+
 {
   df <- import_SPSS_file(file, path)
   assertthat::assert_that(all(cols %in% names(df)))
@@ -106,11 +106,11 @@ import_cols <- function(file = stop("SHP99_P_USER.sav"),
 #'
 #' @examples
 #' library(tidyverse)
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"))
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"))
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
 #' # work conditions stress
-#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
-#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
+#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
+#' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
 #' # interference work - private
 
 
@@ -122,17 +122,17 @@ import_long_cols <- function(file = stop("P_USER.sav"),
                              path = stop("~/FHS/5. Semester/BATHV/dataset_932(2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
                              cols = c("IDPERS", "PXXW604"),
                              year_start = "1999",
-                             year_end = "2018") 
+                             year_end = "2018")
 {
   years <- as.numeric(year_start):as.numeric(year_end)
   data <- list()
-  for(i in seq_along(years)) 
+  for(i in seq_along(years))
   {
     file_i <- paste0("SHP", as.character(sprintf('%02d', years[i] %% 100)), "_", file)
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
-    
-    
-    
+
+
+
     cat(paste0("Importing year ", years[i], "...  "))
     df <- import_cols(file_i, path_i, cols = yearly_col_names(cols, years[i]))
     names(df)[1] <- "ID"
@@ -162,9 +162,9 @@ yearly_col_names <- function(cols, year) {
   assertthat::assert_that(assertthat::see_if(year >= 1999))
   assertthat::assert_that(assertthat::see_if(year <= 2020))
   # assertthat::assert_that(assertthat::are_equal(cols[1], "IDPERS"))
-  
-  
-  
+
+
+
   if(cols[1] == "IDPERS") {
     for (i in 2:length(cols)) {
       cols[i] <- paste0(stringr::str_split(cols[i], "YY")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "YY")[[1]][2])
@@ -174,13 +174,13 @@ yearly_col_names <- function(cols, year) {
     cols[1] <- paste0(cols[1], as.character(sprintf('%02d', year %% 100)))
     for (i in 2:length(cols)) {
       cols[i] <- paste0(stringr::str_split(cols[i], "YY")[[1]][1], as.character(sprintf('%02d', year %% 100)), stringr::str_split(cols[i], "YY")[[1]][2])
-      
+
       #cols[i] <- paste0(stringr::str_sub(cols[i], 1, 1), as.character(sprintf('%02d', year %% 100)), stringr::str_sub(cols[i], 4))
     }
   }
-  
-  
-  
+
+
+
   assertthat::assert_that(assertthat::is.string(cols[1]))
   return(cols)
 }
@@ -270,10 +270,10 @@ mannfrau <- geschlecht %>% drop_na() %>% filter(SEX04+SEX05+SEX06+SEX07+SEX08+SE
 
 mannfrau
 
-geschlecht <- geschlecht %>% transmute(ID, SEX04) # 
+geschlecht <- geschlecht %>% transmute(ID, SEX04) #
 
 df <- mutate(depression, ermuedung, stress_arbeit, gesundheitliche_erkrankung, arbeit_zufriedenheit_aufgaben, art_arbeitszeit, einbezug_entscheidungen, arbeitskontrolle_personen,
-             qualifikation_arbeit, arbeitsstunden_woche, wochenend_arbeit, nachtarbeit, taegl_pendel_in_min, arbeits_intensität, zufriedenheit_arbeitsatmosphaere, 
+             qualifikation_arbeit, arbeitsstunden_woche, wochenend_arbeit, nachtarbeit, taegl_pendel_in_min, arbeits_intensität, zufriedenheit_arbeitsatmosphaere,
              arbeit_laerm_schmutz, arbeit_ermuedende_koerperha, hausarbeit_stunden_woche, beeintraechtigung_arbeit_privat, abschalten_nach_arbeit, einschraenkung_weg_ges_zustand,
              tage_gesunheits_prob, chronische_krankheit, hoechster_bildungsabschluss, partnerschaft, tod_person, person_haushalt, migrationshintergrund, geschlecht, alter, status,
              beschaeftigung)
@@ -407,7 +407,7 @@ library(writexl)
 #install.packages('Rcmdr')
 library('Rcmdr')
 
-name_col <- colnames(depression)  
+name_col <- colnames(depression)
 name_col
 dt_na <- df %>% select(name_col) %>% subset(select = -c(ID)) %>% sapply(function(x) sum(is.na(x)))
 dt_na <- t(dt_na)
@@ -427,7 +427,7 @@ dt_mit_na
 #dt_perc_mit_na
 #dt_perc_mit_na <- as.data.frame(dt_perc_mit_na)
 Means=rowMeans(dt_mit_na)
-Means <- t(Means) 
+Means <- t(Means)
 Means <- as.data.frame(Means)
 Means
 #liste <- list(dt_mit_na, dt)

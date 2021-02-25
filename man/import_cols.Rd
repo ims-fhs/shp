@@ -21,8 +21,8 @@ import_cols(
 import_cols
 }
 \examples{
-shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c(2,3))
+shp99_p_user_cols23 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c(2,3))
 difficulties to conciliate personal and professional life last 12 months
-shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
-shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
+shp99_p_user_cols_id_p99f09 <- import_cols("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999", cols = c("IDPERS", "P99F09"))
+shp04_p_user_cols_id_p04w604 <- import_cols("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004", cols = c("IDPERS", "P04W604"))
 }

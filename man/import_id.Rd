@@ -19,5 +19,5 @@ import_id(
 import_id
 }
 \examples{
-shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS/W1_1999")
+shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
 }

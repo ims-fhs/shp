@@ -10,10 +10,10 @@
 #' @export
 #'
 #' @examples
-#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", "PXXC71")
-#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", "PXXC75")
-#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", "PXXC106")
-#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", "PXXC108")
+#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", "PXXC71")
+#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", "PXXC75")
+#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", "PXXC106")
+#' years_available("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", "PXXC108")
 years_available <- function(file = stop("Please provide a file name in the format xxx.sav"),
                             path = stop("Please provide the path to the file."),
                             col_name = stop("Please provide a single col_name you want the availability."),
