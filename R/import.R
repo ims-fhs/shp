@@ -91,8 +91,10 @@ import_cols <- function(file = stop("Please provide a file name in the format xx
 #' @export
 #'
 #' @examples
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P99F09"))
-#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P99F09"), year_start = "1999", year_end = "2003")
+#' library(tidyverse)
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXC17"))
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
+#' shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "2010")
 #' # work conditions stress
 #' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
 #' shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W19-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")
@@ -109,6 +111,7 @@ import_long_cols <- function(file = stop("Please provide a file name in the form
     file_i <- paste0("SHP", as.character(sprintf('%02d', years[i] %% 100)), "_", file)
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
 
+    cat(paste0("Importing year ", years[i], "...  "))
     df <- import_cols(file_i, path_i, cols = yearly_col_names(cols, years[i]))
     names(df)[1] <- "ID"
     data[[i]] <- df
