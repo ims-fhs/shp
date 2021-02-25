@@ -4,7 +4,7 @@
 # library(kml)
 # library(lubridate)
 #
-# source('R/200901-script-schritt1-clustering-v2.R')
+# source('R/200908-script-schritt1-clustering-wstat.R')
 #
 # occupied_and_right_age <- occupied_and_right_age %>%
 #   mutate(year = as.numeric(paste0("20", year)))
@@ -27,7 +27,7 @@
 #   filter(complete.cases(.)) %>%
 #   filter(cluster != "A")
 # dep_rf <- depression_explained
-# dep_rf <- dep_rf %>% group_by(cluster) %>% sample_n(min(table(dep_tree$cluster)))
+# dep_rf <- dep_rf %>% group_by(cluster) %>% sample_n(min(table(dep_rf$cluster)))
 #
 # library(randomForest)
 # set.seed(911)
@@ -38,8 +38,26 @@
 # dep_tree <- depression_explained %>% mutate_if(is.character, as.factor)
 # dep_tree <- dep_tree %>% group_by(cluster) %>% sample_n(min(table(dep_tree$cluster)))
 # library(tree)
-# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree)
+# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree, control=tree.control(210, mincut = 10))
 # summary(dep.tree)
 # plot(dep.tree)
 # text(dep.tree, pretty = 0)
+# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree, control=tree.control(210, mincut = 20))
+# summary(dep.tree)
+# plot(dep.tree)
+# text(dep.tree, pretty = 0)
+#
+# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree, control=tree.control(210, mincut = 30))
+# summary(dep.tree)
+# plot(dep.tree)
+# text(dep.tree, pretty = 0)
+# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree, control=tree.control(210, mincut = 40))
+# summary(dep.tree)
+# plot(dep.tree)
+# text(dep.tree, pretty = 0)
+# dep.tree <- tree(cluster~.-depression-ID-year, data = dep_tree, control=tree.control(210, mincut = 50))
+# summary(dep.tree)
+# plot(dep.tree)
+# text(dep.tree, pretty = 0)
+#
 #
