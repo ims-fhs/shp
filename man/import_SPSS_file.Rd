@@ -5,8 +5,9 @@
 \title{import_SPSS_file}
 \usage{
 import_SPSS_file(
-  file = stop("Please provide a file name in the format xxx.sav"),
-  path = stop("Please provide the path to the file.")
+  file = stop("SHP99_P_USER.sav"),
+ 
+    path = stop("~/FHS/5. Semester/BATHV/dataset_932 (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/W1_1999/SHP99_P_USER.sav")
 )
 }
 \arguments{
