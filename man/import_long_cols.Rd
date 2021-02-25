@@ -6,9 +6,8 @@
 \usage{
 import_long_cols(
   file = stop("P_USER.sav"),
- 
-    path = stop("~/FHS/5. Semester/BATHV/dataset_932(2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/"),
-  cols = c("IDPERS", "PXXW604"),
+  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS"),
+  cols = c("IDPERS", "PYYW604"),
   year_start = "1999",
   year_end = "2018"
 )
@@ -24,8 +23,8 @@ import_long_cols
 }
 \examples{
 library(tidyverse)
-shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"))
-shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF09"), year_start = "1999", year_end = "2003")
+shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PYYF09"))
+shp_p_user_cols_id_p99f09 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PYYF09"), year_start = "1999", year_end = "2003")
 # work conditions stress
 shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2004")
 shp_p_user_cols_id_w604 <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04W604"), year_start = "2004", year_end = "2017")

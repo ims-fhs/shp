@@ -6,8 +6,7 @@
 \usage{
 import_id(
   file = stop("SHP99_P_USER.sav"),
- 
-    path = stop("~/FHS/5. Semester/BATHV/dataset_932                                                                     (2)/Data_SPSS/Data_SPSS/SHP-Data-W1-W20-SPSS/")
+  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
 )
 }
 \arguments{
