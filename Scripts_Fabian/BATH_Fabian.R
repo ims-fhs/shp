@@ -2,30 +2,7 @@ library(tidyverse)
 library(shp)
 load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Das ist ein Kommentar
 
 
 depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = "2004", year_end = "2018")
