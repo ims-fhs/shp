@@ -111,7 +111,7 @@ import_long_cols <- function(file = stop("P_USER.sav"),
     file_i <- paste0("SHP", as.character(sprintf('%02d', years[i] %% 100)), "_", file)
     path_i <- paste0(path, "/W", as.character(as.numeric(years[i]) - 1998), "_", as.character(years[i]))
 
-    cat(paste0("Importing year ", years[i], "...  "))
+    message(paste0("Importing year ", years[i], "...  "))
     df <- import_cols(file_i, path_i, cols = yearly_col_names(cols, years[i]))
     names(df)[1] <- "ID"
     data[[i]] <- df
