@@ -3,7 +3,7 @@
 # library(shp)
 # library(kml)
 #
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "PXXF50"), year_start = "2004", year_end = "2017")
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDPERS", "PXXF50"), year_start = "2004", year_end = "2017")
 # data <- data %>% filter(complete.cases(.))
 #
 # data <- data %>% pivot_longer(cols = -ID) %>% group_by(ID) %>% mutate(diff = lead(value) - value)
@@ -28,7 +28,7 @@
 # plot(PXXF50,3,parMean=parMEAN(type="l"))
 #
 #
-# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDHOUS", "HXXH01"), year_start = "2004", year_end = "2017")
+# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDHOUS", "HXXH01"), year_start = "2004", year_end = "2017")
 # data <- data %>% filter(complete.cases(.))
 #
 # data <- data %>% pivot_longer(cols = -ID) %>% group_by(ID) %>% mutate(diff = lead(value) - value)

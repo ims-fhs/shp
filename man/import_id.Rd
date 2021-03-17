@@ -6,7 +6,7 @@
 \usage{
 import_id(
   file = stop("SHP99_P_USER.sav"),
-  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
 )
 }
 \arguments{
@@ -19,5 +19,5 @@ import_id(
 import_id
 }
 \examples{
-shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+shp99_p_user_id <- import_id("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
 }

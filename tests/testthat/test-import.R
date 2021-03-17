@@ -2,7 +2,7 @@ test_that("import_SPSS_file", {
   expect_error(import_SPSS_file())
   # expect_equal(class(import_SPSS_file(
   #   file = "SHP99_P_USER.sav",
-  #   path = "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")),
+  #   path = "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")),
   #   "data.frame")
 })
 

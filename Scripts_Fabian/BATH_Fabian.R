@@ -1,6 +1,6 @@
 library(tidyverse)
 library(shp)
-load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS")
+load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
 
 
 

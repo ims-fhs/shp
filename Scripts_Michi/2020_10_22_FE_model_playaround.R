@@ -22,5 +22,5 @@ library(shp)
 ## -----------------------------------------------------------------------------
 
 # Import one Wave
-shp99_p_user_3.1.0 <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+shp99_p_user_3.1.0 <- import_SPSS_file("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
 

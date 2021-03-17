@@ -86,7 +86,7 @@ Sum of Stress for all complete cases in Years 2004 - 2018 (960 of 14'081
 cases are complete)
 
 ```{r}
-# stress <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# stress <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                            cols = c("IDPERS", "PYYW604"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(stress, "stress", save_path, force = TRUE)
 stress <- imsbasics::load_rdata("stress", load_path)
@@ -102,7 +102,7 @@ Work life Balance of first 10 complete cases in years 2004 - 2018 (946
 of 14'081 cases are complete).
 
 ```{r}
-# wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                         cols = c("IDPERS", "PYYF50"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(wlb, "wlb", save_path, force = TRUE)
 wlb <- imsbasics::load_rdata("wlb", load_path)
@@ -237,7 +237,7 @@ We want to compare (look for connections) between `Autonomie` &
  * SEX15 = Sex
 
 ```{r}
-aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015",
+aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W17_2015",
                           cols = c("IDPERS", "P15C70", "P15W91", "SEX15"))
 aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 
@@ -262,7 +262,7 @@ year `W17_2015`):
 
 ```{r}
 # Versuch 2
-aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015",
+aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W17_2015",
                           cols = c("IDPERS", "P15C104", "P15W91", "SEX15"))
 aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 
@@ -288,7 +288,7 @@ We want to compare (look for connections) between `Autonomie` &
  * P15W87: CMJ: Job with supervisory tasks (~ Selbstwirksamkeitserwartung)
 
 ```{r}
-aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015",
+aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W17_2015",
                           cols = c("IDPERS", "P15W87", "P15C71"))
 aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 aut_vs_sel <- aut_vs_sel %>%
@@ -328,7 +328,7 @@ We additionally take one additional variable into account - as color.
  * P15W228: CMJ: Satisfaction: Job in general
 
 ```{r}
-aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W17_2015",
+aut_vs_sel <- import_cols("SHP15_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W17_2015",
                           cols = c("IDPERS", "P15W87", "P15C71", "P15W228"))
 aut_vs_sel <- aut_vs_sel %>% filter(complete.cases(.))
 aut_vs_sel <- aut_vs_sel %>%
@@ -456,7 +456,7 @@ Clustering of Work-Life-Balance for complete cases (946 of 14'081 cases)
 using `kml`. Different number of clusters is used (2-8)
 
 ```{r}
-# # wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# # wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 # #                         cols = c("IDPERS", "PYYF50"), year_start = "2004", year_end = "2018")
 # # imsbasics::save_rdata(wlb, "wlb", save_path, force = TRUE)
 # wlb <- imsbasics::load_rdata("wlb", load_path)
@@ -540,7 +540,7 @@ cases, because the variables are not available for desired timespan.
     4 weeks
 
 ```{r}
-# sleep_problems <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# sleep_problems <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYC06A"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(sleep_problems, "sleep_problems", save_path, force = TRUE)
 sleep_problems <- imsbasics::load_rdata("sleep_problems", load_path)
@@ -557,7 +557,7 @@ sleep_problems <- clusterLongData(sleep_problems)
 -   PYYW604 2004-2018 (works) - CMJ: Work conditions: stress
 
 ```{r}
-# stress <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# stress <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                            cols = c("IDPERS", "PYYW604"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(stress, "stress", save_path, force = TRUE)
 stress <- imsbasics::load_rdata("stress", load_path)
@@ -573,7 +573,7 @@ stress <- clusterLongData(stress)
 -   PYYW93 2004-2018 (works) - CMJ: Satisfaction: Work conditions
 
 ```{r}
-# work_conditions <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# work_conditions <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYW93"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(work_conditions, "work_conditions", save_path, force = TRUE)
 work_conditions <- imsbasics::load_rdata("work_conditions", load_path)
@@ -611,7 +611,7 @@ Longitudinal Clustering of two household variables:
     13 complete cases!)
 
 ```{r}
-# standard_of_living <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# standard_of_living <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                                        cols = c("IDHOUS", "HYYH01"), year_start = "2000", year_end = "2018")
 #
 # imsbasics::save_rdata(standard_of_living, "standard_of_living", save_path, force = TRUE)
@@ -633,7 +633,7 @@ standard_of_living <- clusterLongData(standard_of_living)
 | ![](pic_kml-standard_of_living_6.png) |                                       |
 
 ```{r}
-# child_care <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# child_care <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDHOUS", "HYYF53"), year_start = "1999", year_end = "2018")
 # imsbasics::save_rdata(child_care, "child_care", save_path, force = TRUE)
 child_care <- imsbasics::load_rdata("child_care", load_path)
@@ -660,7 +660,7 @@ activities / family obligations). We cluster by the **change** of the
 variable (`Year X+1` - `Year X`)
 
 ```{r}
-# interference <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# interference <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYF50"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(interference, "interference", save_path, force = TRUE)
 interference <- imsbasics::load_rdata("interference", load_path)
@@ -708,7 +708,7 @@ Further Analysis on HYYH01 2004-2018 (Improvement or deterioration of **standard
 We cluster by the **change** of the variable (`Year X+1` - `Year X`)
 
 ```{r}
-# standard_of_living <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# standard_of_living <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                                        cols = c("IDHOUS", "HYYH01"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(standard_of_living, "standard_of_living_2004-2018", save_path, force = TRUE)
 standard_of_living <- imsbasics::load_rdata("standard_of_living_2004-2018", load_path)
@@ -747,7 +747,7 @@ We look at the sleeping problems per individual (2004 - 2018). We add the cluste
 (A or B - we look at only two clusters)
 
 ```{r}
-# sleep_problems <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# sleep_problems <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYC06A"), year_start = "2004", year_end = "2018")
 # imsbasics::save_rdata(sleep_problems, "sleep_problems", save_path, force = TRUE)
 data <- imsbasics::load_rdata("sleep_problems", load_path)
@@ -769,12 +769,12 @@ plot(PYYC06A, 2, parTraj=parTRAJ(col="clusters"), toPlot = "both", xlab = "Jahr"
 We add the age & gender per Individual (In year 2010).
 ```{r}
 data$cluster <- as.character(PYYC06A@c2[[1]]@clusters)
-age <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W12_2010",
+age <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W12_2010",
                    cols = c("IDPERS", "AGE10"))
 names(age)[1] <- "ID"
 data <- left_join(data, age)
 
-gender <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W12_2010",
+gender <- import_cols("SHP10_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W12_2010",
                       cols = c("IDPERS", "SEX10"))
 names(gender)[1] <- "ID"
 data <- left_join(data, gender)
@@ -862,7 +862,7 @@ Explanation for `OCCUPAYY`:
 #### data preparation
 
 ```{r}
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "OCCUPAYY", "AGEYY", "PYYC17"),
 #                          year_start = "2008", year_end = "2018")
 # longer <- data
@@ -1150,7 +1150,7 @@ Explanation for `WSTATYY`:
 #### data preparation
 
 ```{r}
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "WSTATYY", "AGEYY", "PYYC17"),
 #                          year_start = "2008", year_end = "2018")
 # longer <- data
@@ -1457,7 +1457,7 @@ head(depression_explained, n = 10)
 
 # ========================================
 
-explaining_variables <- import_cols("SHP08_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W10_2008",
+explaining_variables <- import_cols("SHP08_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W10_2008",
                                     cols = c("IDPERS", "SEX08", "EDUCAT08", "P08L11", "P08F50", "P08F08", "P08W77", "P08D29"))
 
 explaining_variables <- explaining_variables %>% rename(ID = IDPERS)
@@ -1680,7 +1680,7 @@ $$\text{plm(PC17 ~ (PD29 + WSTAT), data=paneldata, model="within")}$$
 # library(lme4)
 # 
 # 
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYF51", "PYYW229", "PYYC17", "AGEYY", "WSTATYY", "PYYD29"), 
 #                          year_start = "2008", year_end = "2018")
 # 
@@ -1740,7 +1740,7 @@ Gemäss Dokument "Sample, Beanspruchungsfolgen, Belastungen"; Einzelne Variablen
 *Lesehilfe 2: Im ersten Teil sind die ersten Zeilen des Datensatzes zu sehen, im zweiten Teil eine Zusammenfassung mit den Verteilungen*
 
 ```{r}
-# data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYC17", "PYYF51", "PYYW71A", "PYYW77", "PYYW87", "PYYW91", "PYYW94", 
 #                                   "PYYW100", "PYYW216", "PYYW229", "PYYW603", "PYYW604", "PYYW605", "PYYW606", 
 #                                   "PYYD29", "PYYL11", "PYYF50", "PYYF52", "PYYC08", "PYYC11", "PYYC19A", "PYYF08"), 
@@ -1816,7 +1816,7 @@ is not avaiable on CRAN... Download manually if necessary.
 # library(shp)
 # library(vcrpart)
 
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYC17", "PYYF51", "PYYW71A", "PYYW77", "PYYW87", "PYYW91", "PYYW94", 
 #                                   "PYYW100", "PYYW216", "PYYW229", "PYYW603", "PYYW604", "PYYW605", "PYYW606", "PYYD29", 
 #                                   "PYYL11", "PYYF50", "PYYF52", "PYYC08", "PYYC11", "PYYC19A", "PYYF08"), 
@@ -1890,7 +1890,7 @@ fixed-effects model.
 ```{r}
 dep_clustering <- imsbasics::load_rdata("dep_clustering_200908", load_path)
 
-# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+# data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
 #                          cols = c("IDPERS", "PYYC17", "PYYF51", "PYYW71A", "PYYW77", "PYYW87", "PYYW91", "PYYW94", 
 #                                   "PYYW100", "PYYW216", "PYYW229", "PYYW603", "PYYW604", "PYYW605", "PYYW606", "PYYD29",
 #                                   "PYYL11", "PYYF50", "PYYF52", "PYYC08", "PYYC11", "PYYC19A", "PYYF08"), 

@@ -6,7 +6,7 @@
 \usage{
 import_SPSS_file_head(
   file = stop("SHP99_P_USER.sav"),
-  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
+  path = stop("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
 )
 }
 \arguments{
@@ -19,7 +19,7 @@ import_SPSS_file_head(
 import_SPSS_file_head
 }
 \examples{
-shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
-shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W1_1999")
-shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W6_2004")
+shp99_h_user_head <- import_SPSS_file_head("SHP99_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
+shp99_p_user_head <- import_SPSS_file_head("SHP99_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W1_1999")
+shp04_p_user_head <- import_SPSS_file_head("SHP04_P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W6_2004")
 }

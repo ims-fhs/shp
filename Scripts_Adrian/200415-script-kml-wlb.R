@@ -3,7 +3,7 @@
 # library(shp)
 # library(kml)
 #
-# wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "P04F50"), year_start = "2004", year_end = "2017")
+# wlb <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDPERS", "P04F50"), year_start = "2004", year_end = "2017")
 # wlb_complete <- wlb %>% filter(complete.cases(.))
 #
 # wlb_complete_ld <- clusterLongData(wlb_complete)

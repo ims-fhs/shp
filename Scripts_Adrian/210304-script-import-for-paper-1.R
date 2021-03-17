@@ -1,7 +1,7 @@
 imsbasics::clc()
 library(tidyverse)
 library(shp)
-load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W20-SPSS")
+load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W21-SPSS")
 
 # depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = "2004", year_end = "2018")
 # ermuedung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF51"), year_start = "2004", year_end = "2018")
@@ -48,7 +48,7 @@ load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W20-SPSS")
 # load("data/df_raw_p.R")
 #
 # # Zusammen basteln von P und H Datensatz
-# load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W20-SPSS")
+# load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W21-SPSS")
 #
 # haushaltsaequivalenzeinkommen <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","IYYEQON"), year_start = "2004", year_end = "2018")
 # haushaltstyp <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HLDTYPYY"), year_start = "2004", year_end = "2018")

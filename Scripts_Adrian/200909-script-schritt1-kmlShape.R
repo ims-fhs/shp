@@ -5,7 +5,7 @@ library(kml)
 library(kmlShape)
 library(lubridate)
 
-data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDPERS", "WSTATXX", "AGEXX", "PXXC17"), year_start = "2008", year_end = "2017")
+data <- import_long_cols("P_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDPERS", "WSTATXX", "AGEXX", "PXXC17"), year_start = "2008", year_end = "2017")
 
 longer <- data
 longer <- longer %>%

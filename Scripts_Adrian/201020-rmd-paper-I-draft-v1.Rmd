@@ -170,7 +170,7 @@ library(gplots)    # Various programing tools for plotting data
 library(tseries)   # For timeseries analysis
 library(lmtest)    # For hetoroskedasticity analysis
 library(lme4)
-data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS",
+data <- import_long_cols("P_USER.sav", "../data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS",
                          cols = c("IDPERS", "PXXC17", "PXXF51", "PXXW71A", "PXXW77", "PXXW87", "PXXW91", "PXXW94", "PXXW100", "PXXW216", "PXXW229", "PXXW603", "PXXW604", "PXXW605", "PXXW606", "PXXD29", "PXXL11", "PXXF50", "PXXF52", "PXXC08", "PXXC11", "PXXC19A", "PXXF08"), year_start = "2008", year_end = "2017")
 
 longer <- data %>%

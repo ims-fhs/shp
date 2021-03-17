@@ -3,9 +3,9 @@
 # library(shp)
 # library(kml)
 #
-# names(shp00_h_user_head <- import_SPSS_file_head("SHP00_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS/W2_2000"))
-# years_available("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", col_name = "HXXH01", year_start = "1999", year_end = "2017")
-# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDHOUS", "HXXH01"), year_start = "2000", year_end = "2017")
+# names(shp00_h_user_head <- import_SPSS_file_head("SHP00_H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS/W2_2000"))
+# years_available("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", col_name = "HXXH01", year_start = "1999", year_end = "2017")
+# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDHOUS", "HXXH01"), year_start = "2000", year_end = "2017")
 # data <- data %>% filter(complete.cases(.))
 # HXXH01 <- clusterLongData(data)
 # kml(HXXH01, c(2:6))
@@ -16,8 +16,8 @@
 # plot(HXXH01, 6, parTraj=parTRAJ(col="clusters"), toPlot = "traj", xlab = "Jahr")
 #
 #
-# years_available("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", col_name = "HXXF53", year_start = "1999", year_end = "2017")
-# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W20-SPSS", cols = c("IDHOUS", "HXXF53"), year_start = "1999", year_end = "2017")
+# years_available("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", col_name = "HXXF53", year_start = "1999", year_end = "2017")
+# data <- import_long_cols("H_USER.sav", "data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS", cols = c("IDHOUS", "HXXF53"), year_start = "1999", year_end = "2017")
 # data <- data %>% filter(complete.cases(.))
 # HXXH01 <- clusterLongData(data)
 # kml(HXXH01, c(2:6))
