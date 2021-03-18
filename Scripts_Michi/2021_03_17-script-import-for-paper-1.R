@@ -3,40 +3,45 @@ library(tidyverse)
 library(shp)
 load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
 
-# depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = "2004", year_end = "2019")
-# ermuedung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF51"), year_start = "2004", year_end = "2019")
-# stress_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW604"), year_start = "2004", year_end = "2019")
-# gesundheitliche_erkrankung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC04A"), year_start = "2004", year_end = "2019")
-# arbeit_zufriedenheit_aufgaben <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW229"), year_start = "2004", year_end = "2019")
-# art_arbeitszeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW71A"), year_start = "2004", year_end = "2019")
-# einbezug_entscheidungen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW91"), year_start = "2004", year_end = "2019")
-# arbeitskontrolle_personen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW87"), year_start = "2004", year_end = "2019")
-# qualifikation_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW100"), year_start = "2004", year_end = "2019")
-# arbeitsstunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW77"), year_start = "2004", year_end = "2019")
-# wochenend_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW218"), year_start = "2004", year_end = "2019")
-# nachtarbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW216"), year_start = "2004", year_end = "2019")
-# taegl_pendel_in_min <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW84"), year_start = "2004", year_end = "2019")
-# arbeits_intensität <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW603"), year_start = "2004", year_end = "2019")
-# zufriedenheit_arbeitsatmosphaere <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW94"),  year_start = "2004", year_end = "2019")
-# arbeit_laerm_schmutz <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW605"), year_start = "2004", year_end = "2019")
-# arbeit_ermuedende_koerperha <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW606"), year_start = "2004", year_end = "2019")
-# hausarbeit_stunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF08"), year_start = "2004", year_end = "2019")
-# beeintraechtigung_arbeit_privat <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF50"), year_start = "2004", year_end = "2019")
-# abschalten_nach_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF52"), year_start = "2004", year_end = "2019")
-# einschraenkung_weg_ges_zustand <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC08"), year_start = "2004", year_end = "2019")
-# tage_gesunheits_prob <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC11"), year_start = "2004", year_end = "2019")
-# chronische_krankheit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC19A"), year_start = "2004", year_end = "2019")
-# geschlecht <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","SEXYY"),year_start = "2004", year_end = "2019")
-# hoechster_bildungsabschluss <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","EDUCATYY"), year_start = "2004", year_end = "2019")
-# partnerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD29"), year_start = "2004", year_end = "2019")
-# tod_person <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYL11"), year_start = "2004", year_end = "2019")
-# person_haushalt<- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","IDHOUSYY"), year_start = "2004", year_end = "2019")
-# #schweizerstaatsbürgerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD19"), year_start = "2004", year_end = "2019")
-# migrationshintergrund <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD160"),  year_start = "2004", year_end = "2019")
-# #pflege_angehoerige <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF74"),  year_start = "2004", year_end = "2019")
-# alter <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","AGEYY"),  year_start = "2004", year_end = "2019")
-# status <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","STATUSYY"),  year_start = "2004", year_end = "2019")
-# beschaeftigung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","OCCUPAYY"),  year_start = "2004", year_end = "2019")
+# ## Beanspruchungsfolgen
+# depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = "2004", year_end = "2019") # Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
+# ermuedung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF51"), year_start = "2004", year_end = "2019") # Erschöpfung nach Arbeit um Sachen zu machen
+# stress_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW604"), year_start = "2004", year_end = "2019") # Stress bei der Arbeit
+# gesundheitliche_erkrankung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC04A"), year_start = "2004", year_end = "2019") # Gesundheitliche Probleme: Rückenweh
+# ## Bedingungen/Belastungen: Arbeit
+# arbeit_zufriedenheit_aufgaben <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW229"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Zufriedenheit: Interessante Aufgaben
+# art_arbeitszeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW71A"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Art der Arbeitszeit
+# einbezug_entscheidungen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW91"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Einbezug bei Entscheidungen/Meinungen
+# arbeitskontrolle_personen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW87"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Arbeitskontrolle anderer Personen
+# qualifikation_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW100"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Qualifikation für Arbeit
+# arbeitsstunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW77"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Anzahl Arbeitsstunden pro Woche
+# wochenend_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW218"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Wochenendearbeit
+# nachtarbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW216"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Nachtarbeit
+# taegl_pendel_in_min <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW84"), year_start = "2004", year_end = "2019") # Arbeitsweg: Tägliches Pendeln in Minuten
+# arbeits_intensität <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW603"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Arbeitsrythmus: Intensität
+# zufriedenheit_arbeitsatmosphaere <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW94"),  year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Zufriedenheit: Arbeitsatmosphäre
+# arbeit_laerm_schmutz <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW605"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Arbeitsrythmus: Lärm, Schmutz
+# arbeit_ermuedende_koerperha <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW606"), year_start = "2004", year_end = "2019") # Aktuelle Haupttätigkeit: Arbeitsrythmus: ermüdende Körperhaltung
+# ## Bedingungen/Belastungen: Care-Sphäre
+# hausarbeit_stunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF08"), year_start = "2004", year_end = "2019") # Hausarbeit: Stunden pro Woche
+# beeintraechtigung_arbeit_privat <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF50"), year_start = "2004", year_end = "2019") # Beeinträchtigung Arbeit <-> private Aktivitäten /Familie
+# abschalten_nach_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF52"), year_start = "2004", year_end = "2019") # Schwierigkeit nach Arbeit abzuschalten
+# ## Bedingungen/Belastungen: Lebenslage & Ressourcen
+# einschraenkung_weg_ges_zustand <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC08"), year_start = "2004", year_end = "2019") # Einschränkungen wegen Gesundheitszustand bei täglichen Aktivitäten: Ausmass
+# tage_gesunheits_prob <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC11"), year_start = "2004", year_end = "2019") # Anzahl Tage die von Gesundheitsproblemen betroffen waren: Letzte 12 Monate
+# chronische_krankheit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC19A"), year_start = "2004", year_end = "2019") # Chronische Krankheit oder längerfristiges gesundheitliches Problem
+# geschlecht <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","SEXYY"),year_start = "2004", year_end = "2019") # Geschlecht
+# hoechster_bildungsabschluss <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","EDUCATYY"), year_start = "2004", year_end = "2019") # Höchster Bildungsabschluss
+# partnerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD29"), year_start = "2004", year_end = "2019") # Partnerschaft
+# tod_person <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYL11"), year_start = "2004", year_end = "2019") # Tod einer nahestehenden Person
+# ## Allgemeine Informationen zu personen
+# person_haushalt<- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","IDHOUSYY"), year_start = "2004", year_end = "2019") # Identifikationsnummer des Haushaltes
+# #schweizerstaatsbürgerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD19"), year_start = "2004", year_end = "2019") # ??
+# migrationshintergrund <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD160"),  year_start = "2004", year_end = "2019") # In der Schweiz geboren
+# #pflege_angehoerige <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF74"),  year_start = "2004", year_end = "2019") # ??
+# alter <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","AGEYY"),  year_start = "2004", year_end = "2019") # Alter im Jahr der Befragung
+# status <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","STATUSYY"),  year_start = "2004", year_end = "2019") # Art der Datensammlung: raster, proxy, persönlich  (-1 "weiss nicht" 0 "individueller Fragebogen" 1 "proxy Fragebogen" 2 "nur Haushaltsraster" 3 "kinderbetreuung" 4 "Biographischer Fragebogen ")
+# beschaeftigung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","OCCUPAYY"),  year_start = "2004", year_end = "2019") # Aktuelle Beschäftigung
 #
 # df_raw_p <- mutate(depression, ermuedung, stress_arbeit, gesundheitliche_erkrankung, arbeit_zufriedenheit_aufgaben,
 #                    art_arbeitszeit, einbezug_entscheidungen, arbeitskontrolle_personen, qualifikation_arbeit,
@@ -52,8 +57,8 @@ load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
 # # Zusammen basteln von P und H Datensatz
 # load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
 #
-# haushaltsaequivalenzeinkommen <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","IYYEQON"), year_start = "2004", year_end = "2019")
-# haushaltstyp <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HLDTYPYY"), year_start = "2004", year_end = "2019")
+# haushaltsaequivalenzeinkommen <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","IYYEQON"), year_start = "2004", year_end = "2019") # Jährliches Haushaltseinkommen (Aequivalenz), OECD, netto
+# haushaltstyp <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HLDTYPYY"), year_start = "2004", year_end = "2019") # Haushaltstyp (PACO)  (1 "eine Person 65 Jahre oder älter" 2 "eine Person 30 Jahre alt oder älter und jünger als 65 Jahre" 3 "eine Person jünger als 30 Jahren" 4 "alleinerziehende Person mit  Kind/ern 16 Jahre alt oder jünger" 5 "alleinerzeihende Person mit mind einem Kind älter als 16" 6 "Paar ohne Kinder mit zumindest jemand >=  65 Jahre alt" 7 "Paar ohne Kinder mit beide jünger als 65 Jahre" 8 "Paar mit einem Kind" 9 "Paar mit zwei Kindern" 10 "Paar mit drei Kindern und mehr" 11 "Paar mit zumindest einem Kind über 16 Jahren" 12 "andere Haushalte, alle Mitglieder verwandt" 13 "andere Haushalte, nicht alle Mitglieder verwandt".)
 #
 # h_datensatz <- mutate(haushaltsaequivalenzeinkommen, haushaltstyp)
 #
@@ -73,6 +78,7 @@ load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
 # h_datensatz_17 <- h_datensatz %>% transmute(ID, I17EQON, HLDTYP17)
 # h_datensatz_18 <- h_datensatz %>% transmute(ID, I18EQON, HLDTYP18)
 #
+# Add haushaltsaequivalenzeinkommen & haushaltstyp for every year.
 # df <- full_join(df_raw_p, h_datensatz_04, by = c("IDHOUS04" = "ID"))
 # df <- left_join(df, h_datensatz_05, by = c("IDHOUS05" = "ID"))
 # df <- left_join(df, h_datensatz_06, by = c("IDHOUS06" = "ID"))
