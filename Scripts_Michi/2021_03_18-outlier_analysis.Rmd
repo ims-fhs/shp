@@ -1,0 +1,163 @@
+---
+title: "Outlier Analysis"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: yes
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+library(tidyverse)
+library(shp)
+
+
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+# set load- and save-paths for faster loading of data
+load_path <- paste0(getwd(),"/")
+save_path <- load_path
+```
+
+# Intro 
+
+In this script we want to analyse the imported dataset for paper I in the SNF project 
+in order to get a suitable overview 
+
+# Preparatory Work
+
+## Renaming
+We rename the columns of our dataset to more understandable names.
+
+```{r}
+load("data/df_long.R")
+
+lut_names <- as.data.frame(cbind(
+                   colname_SHP = colnames(df_long), 
+                   colname_SNF = c("id","year","depression","ermuedung","stress_arbeit","rueckenschmerzen",
+                     "arbeit_zufriedenheit_aufgaben","art_arbeitszeit","arbeit_einbezug_entscheidungen",
+                     "arbeitskontrolle_personen","arbeit_qualifikation","arbeitsstunden_woche",
+                     "wochenend_arbeit","nachtarbeit","taegl_pendeln_min","arbeit_intensitaet",
+                     "zufriedenheit_arbeitsatmosphaere","arbeit_laerm_schmutz","arbeit_ermuedende_koerperha",
+                     "hausarbeit_stunden_woche","beeintraechtigung_arbeit_privat","abschalten_nach_arbeit",
+                     "einschraenkung_weg_ges_zustand","tage_gesunheits_prob","chronische_krankheit",
+                     "ausbildung","partnerschaft","tod_person","person_haushalt","migrationshintergrund",
+                     "geschlecht","alter","status","occupa","ch_nationalitaet","haushaltsaequivalenzeinkommen",
+                     "kinder_betreuung")))
+colnames(df_long) <- lut_names$colname_SNF
+
+knitr::kable(lut_names) %>% kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## Sampling & Transformation
+
+We first: 
+
+ * drop entries with invalid values for `alter` and 
+ * only look at individuals between `age` 15 and 65 
+ * only look at individuals with `occupa` in 1,2,3,5,6: 
+    * **1 "Bezahlte Erwerbstätigkeit, vollzeit (reguläre Arbeitszeit 37 Stunden pro Woche oder mehr)"**
+    * **2 "Bezahlte Erwerbstätigkeit, teilzeit (reguläre Arbeitszeit 5-36 Stunden pro Woche)"**
+    * **3 "Bezahlte Erwerbstätigkeit, teilzeit (1 - 4 Stunden / Woche)"**
+    * 4 "In Ausbildung (Lehrling, Schüler/In, Student/In)"
+    * **5 "Mitarbeit im Familienbetrieb"**
+    * **6 "Arbeit in geschützter Werkstatt (für Behinderte, Personen mit Problemen)"**
+    * 7 "Kind/Frau/Mann im Haushalt (nur bis maximal 64 bzw. 65 Jahre)"
+    * 8 "Rentner (AHV)"
+    * 9 "Rentner, (IV usw.)"
+    * 10 "Arbeitslos"
+    * 11 "Andere Tätigkeit (Weiterbildung, unbezahlter Urlaub)"
+
+```{r, fig.height=3}
+par(mfrow = c(1,2))
+hist(df_long$alter)
+hist(df_long$occupa)
+
+
+sample <- df_long %>%
+  drop_na(alter) %>%
+  filter(alter >= 15) %>%
+  filter(alter <= 65) %>%
+  filter(occupa %in% c(1,2,3,5,6))
+```
+
+We loose `r nrow(df_long) - nrow(sample)` of total `r nrow(df_long)` observations.  
+We then transform all columns to numeric values.
+```{r}
+# glimpse(sample)
+sample <- mutate_all(sample, function(x) as.numeric(as.character(x)))
+# glimpse(sample)
+```
+
+Basic properties 
+
+ * `df_long` has `r nrow(df_long)` rows and `r ncol(df_long)` columns and contains 
+ `r length(unique(df_long$id))` unique individuals.
+ * `sample` has `r nrow(sample)` rows and `r ncol(sample)` columns and contains 
+ `r length(unique(sample$id))` unique individuals.
+
+
+# Analysis of NA's
+```{r}
+NAs_per_column <- data.frame(na_absolute = unlist(map(sample, ~sum(is.na(.)))), 
+                             na_relative = unlist(map(sample, ~sum(is.na(.))/nrow(sample)))
+                                        )
+
+knitr::kable(NAs_per_column) %>% kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+# Analysis of Outliers {.tabset}
+
+## Histogram 
+```{r, fig.height=9}
+as.data.frame(sample[3:ncol(sample)]) %>%
+  pivot_longer(-person_haushalt, names_to = "variablen", values_to = "daten") %>%
+  ggplot() +
+  geom_bar(aes(y = daten)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        strip.text.x = element_text(size = 7)) +
+  facet_wrap(~variablen, scales = "free", ncol = 4)
+```
+
+## Boxplot
+```{r, fig.height=9}
+as.data.frame(sample[3:ncol(sample)]) %>%
+  pivot_longer(-person_haushalt, names_to = "variablen", values_to = "daten") %>%
+  ggplot() +
+  geom_boxplot(aes(y = daten)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(), 
+        strip.text.x = element_text(size = 7)) +
+  facet_wrap(~variablen, scales = "free", ncol = 4)
+```
+
