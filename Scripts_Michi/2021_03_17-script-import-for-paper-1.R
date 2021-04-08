@@ -89,8 +89,8 @@ schweizer_nationalitaet <- nationalitaet_long %>%
 #                    chronische_krankheit, hoechster_bildungsabschluss, partnerschaft, tod_person, person_haushalt,
 #                    migrationshintergrund, geschlecht, alter, status, beschaeftigung, schweizer_nationalitaet)
 #
-# save(df_raw_p, file = "data/df_raw_p.R")
-# load("data/df_raw_p.R")
+# save(df_raw_p, file = "data/df_raw_p.RData")
+# load("data/df_raw_p.RData")
 #
 ## ---------------/-------------------------------------------/-----------------
 ## --------------------------- H - Import easy variables -----------------------
@@ -259,9 +259,9 @@ h_datensatz <- mutate(haushaltsaequivalenzeinkommen, kinderbetreuung)
 # df <- left_join(df, h_datensatz_19, by = c("IDHOUS19" = "ID"))
 #
 #
-# save(df, file = "data/df.R")
+# save(df, file = "data/df.RData")
 # imsbasics::clc()
-# load("data/df.R")
+# load("data/df.RData")
 #
 #
 # df_long <- df %>%
@@ -269,9 +269,9 @@ h_datensatz <- mutate(haushaltsaequivalenzeinkommen, kinderbetreuung)
 #                names_to = c('.value', 'year','.value','.value'),
 #                names_pattern = '([A-Z]+)(\\d+)([A-Z_]*)([0-9_]*)')
 #
-# save(df_long, file = "data/df_long.R")
+# save(df_long, file = "data/df_long.RData")
 # imsbasics::clc()
-load("data/df_long.R")
+load("data/df_long.RData")
 
 colnames(df_long) <- c("id","year","depression","ermuedung","stress_arbeit","rueckenschmerzen","arbeit_zufriedenheit_aufgaben","art_arbeitszeit","arbeit_einbezug_entscheidungen","arbeitskontrolle_personen","arbeit_qualifikation","arbeitsstunden_woche","wochenend_arbeit","nachtarbeit","taegl_pendeln_min","arbeit_intensitaet","zufriedenheit_arbeitsatmosphaere","arbeit_laerm_schmutz","arbeit_ermuedende_koerperha","hausarbeit_stunden_woche","beeintraechtigung_arbeit_privat","abschalten_nach_arbeit","einschraenkung_weg_ges_zustand","tage_gesunheits_prob","chronische_krankheit","ausbildung","partnerschaft","tod_person","person_haushalt","migrationshintergrund","geschlecht","alter","status","occupa","ch_nationalitaet","haushaltsaequivalenzeinkommen","kinder_betreuung")
 
