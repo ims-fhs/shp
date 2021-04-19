@@ -56,7 +56,7 @@ in order to get a suitable overview
 We rename the columns of our dataset to more understandable names.
 
 ```{r}
-load("data/df_long.R")
+load("data/df_long.RData")
 
 lut_names <- as.data.frame(cbind(
                    colname_SHP = colnames(df_long), 
