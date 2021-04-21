@@ -262,14 +262,34 @@ df_ols3 <- df_ols2
 # Hausarbeitsstunden
 table(df_ols3$hausarbeit_stunden_woche, useNA = "ifany")
 
+# Kinderbetreuung
+table(df_ols3$kinder_betreuung, useNA = "ifany")
+df_ols3 <- df_ols3 %>%
+  mutate(kinder_betreuung = case_when(
+    kinder_betreuung == 0 ~ 1,
+    kinder_betreuung %in% c(1,2) ~ 2))
+df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(1,2), labels = c("Nein", "Ja"))
+df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(0,1,2), labels = c("Keine Kinderbetreuung", "Geteilte Kinderbetreuung", "Alleinerziehend"))
+table(df_ols3$kinder_betreuung, useNA = "ifany")
 
+stargazer(plm(depression ~
+                kinder_betreuung,
+              data = df_ols3, index = c("id","year"), model="within"),
+          title="Kinderbetreuung", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
+# Pflege und Betreuung von Angehörigen
+table(df_ols3$pflege_extern, useNA = "ifany")
+
+# Analyse
 ols3 <- plm(depression ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
               arbeit_qualifikation + arbeitsstunden_woche + nachtarbeit +
               arbeit_intensitaet + zufriedenheit_arbeitsatmosphaere +
-              hausarbeit_stunden_woche,
+              hausarbeit_stunden_woche + kinder_betreuung,
             data = df_ols3, index = c("id","year"), model="pooling")
 
 
