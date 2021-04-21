@@ -104,11 +104,11 @@ ggpairs(df_plot, aes(color = cluster, alpha = 0.3)) + theme_bw()
 df_plot <- df_clustered[c(23,26,32,38)]
 ggpairs(df_plot, aes(color = cluster, alpha = 0.3)) + theme_bw()
 
-df_clustered$cluster <- as.numeric(df_clustered$cluster)
 
 
 ## Regressionsanalysis per Cluster
 ### Pooled OLS Variableset 1
+df_clustered$cluster <- as.numeric(df_clustered$cluster)
 
 regressions <- list()
 for(i in 1:length(unique(df_clustered$cluster))){
