@@ -89,7 +89,7 @@ df_clustered$geschlecht <- factor(df_clustered$geschlecht, levels = c(1,2), labe
 table(df_clustered$geschlecht, useNA = "ifany")
 
 # Alter
-ggplot(df_ols2, aes(alter, depression)) +
+ggplot(df_clustered, aes(alter, depression)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth()
 
@@ -132,10 +132,10 @@ stargazer(ols1,
 df_clustered_norm <- normalize(df_clustered, method = "range", range = c(0, 1))
 
 ols1_norm <- plm(depression ~
-              ausbildung + geschlecht + ch_nationalitaet +
-              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-              partnerschaft + tod_person,
-            data = df_clustered_norm, index = c("id","year"), model="pooling")
+                   ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+                   einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+                   partnerschaft + tod_person,
+                 data = df_clustered_norm, index = c("id","year"), model="pooling")
 
 
 stargazer(ols1_norm,
@@ -205,7 +205,7 @@ table(df_ols2$arbeit_qualifikation, useNA = "ifany")
 
 
 ols2 <- plm(depression ~
-              ausbildung + alter + geschlecht + ch_nationalitaet +
+              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
               arbeit_qualifikation + arbeitsstunden_woche + nachtarbeit,
