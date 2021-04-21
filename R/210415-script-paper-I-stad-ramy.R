@@ -202,18 +202,79 @@ table(df_ols2$arbeit_qualifikation, useNA = "ifany")
 # df_ols2$arbeitsstunden_woche <- factor(df_ols2$arbeitsstunden_woche, levels = c(1,2,3), labels = c("Normal", "Workaholic", "Kaum"))
 # table(df_ols2$arbeitsstunden_woche, useNA = "ifany")
 
+# Nachtarbeit recodieren
+table(df_ols2$nachtarbeit, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(nachtarbeit = case_when(
+    nachtarbeit == 1 ~ 2,
+    nachtarbeit == 2 ~ 1))
+df_ols2$nachtarbeit <- factor(df_ols2$nachtarbeit, levels = c(1,2), labels = c("Nein", "Ja"))
+table(df_ols2$nachtarbeit, useNA = "ifany")
+
+ggplot(df_ols2 %>% drop_na, aes(nachtarbeit, depression)) +
+  geom_boxplot() +
+  geom_smooth()
+
+stargazer(plm(depression ~
+                nachtarbeit,
+              data = df_ols2, index = c("id","year"), model="pooling"),
+          title="Nachtarbeit", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
+
+# Wochenendarbeit recodieren
+# table(df_ols2$wochenend_arbeit, useNA = "ifany")
+# df_ols2$wochenend_arbeit <- factor(df_ols2$wochenend_arbeit, levels = c(1,2), labels = c("Ja", "Nein"))
+# table(df_ols2$wochenend_arbeit, useNA = "ifany")
+# -> Entscheid 21.4.; Nicht berücksichtigen, hat keinen Effekt
+
+# Arbeitsablauf/Arbeitintensität
+table(df_ols2$arbeit_intensitaet, useNA = "ifany")
+
+# Soziale Beziehungen zu den Kollegen
+table(df_ols2$zufriedenheit_arbeitsatmosphaere, useNA = "ifany")
 
 
 ols2 <- plm(depression ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
-              arbeit_qualifikation + arbeitsstunden_woche + nachtarbeit,
+              arbeit_qualifikation + arbeitsstunden_woche + nachtarbeit +
+              arbeit_intensitaet + zufriedenheit_arbeitsatmosphaere,
             data = df_ols2, index = c("id","year"), model="pooling")
 
 
 stargazer(ols2,
           title="Pooled OLS A+L>D", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
+ggplot(df_ols2, aes(arbeitsstunden_woche, depression)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+
+
+# 3) OLS A+L+C>D ----------------------------------------------------------
+
+df_ols3 <- df_ols2
+
+# Hausarbeitsstunden
+table(df_ols3$hausarbeit_stunden_woche, useNA = "ifany")
+
+
+ols3 <- plm(depression ~
+              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+              arbeit_qualifikation + arbeitsstunden_woche + nachtarbeit +
+              arbeit_intensitaet + zufriedenheit_arbeitsatmosphaere +
+              hausarbeit_stunden_woche,
+            data = df_ols3, index = c("id","year"), model="pooling")
+
+
+stargazer(ols3,
+          title="Pooled OLS A+L+C>D", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
 
@@ -261,12 +322,12 @@ df_clustered$cluster <- as.numeric(df_clustered$cluster)
 regressions <- list()
 for(i in 1:length(unique(df_clustered$cluster))){
   df_per_cluster = df_clustered %>% filter(cluster == i)
-  regressions[[i]] = plm(depression ~ ausbildung + geschlecht + ch_nationalitaet, data = df_per_cluster, index = c("id","year"), model="pooling")
+  regressions[[i]] = plm(depression ~ nachtarbeit, data = df_per_cluster, index = c("id","year"), model="pooling")
 }
 
 stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]], regressions[[5]],
           title="Pooled OLS VS1", type="text",
-          column.labels=c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Cluster 5"),
+          column.labels=c("Cluster A", "Cluster B", "Cluster C", "Cluster D", "Cluster E"),
           df=FALSE, digits=4)
 
 ### Pooled OLS Variableset 2
