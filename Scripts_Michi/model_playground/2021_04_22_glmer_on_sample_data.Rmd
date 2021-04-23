@@ -1,0 +1,327 @@
+---
+title: "lme4::lmer() on sample data"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: yes
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+div.blue { 
+  background-color:#e6f0ff; 
+  border-radius: 5px; 
+  padding: 20px;
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+source("../00_functions.R")
+
+library(tidyverse)
+library(shp)
+library(plotly)
+library(multilevelTools)
+library(lme4)
+library(lmerTest)
+library(sjPlot)
+library(broom.mixed) # very important, because otherwise modelsummary::get_estimates() won't recognize 
+                     # the random effects when rendering the Rmd. The S3-Method "tidy.gamlss" needs
+                     # to be overwritten by the "broom.mixed"-package to fix this isue. 
+
+                     
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+
+```{r}
+df <- imsbasics::load_rdata("sample.RData", "Scripts_Michi/model_playground/")
+```
+
+# Intro
+
+In this script I want to play around with the `lme4::glmer()` function.
+
+
+
+The column "year" needs to be transformed to numeric values.
+```{r}
+table(sapply(X = df, FUN = class))
+which(sapply(X = df, FUN = class) == "character")
+df$year <- as.numeric(df$year)
+```
+
+
+```{r, fig.width=8.4}
+# We want to visualize the development of `depression` over time for the first 100 people
+# we Add NA's to have nice separated lines (per person)
+ind_add_NA <- which(!duplicated(df$id))[1:100]
+ind_add_NA[1] <- 0
+df2 <- berryFunctions::insertRows(as.data.frame(df[1:max(ind_add_NA),]), r = ind_add_NA,
+                                  new= NA, rcurrent = TRUE)
+plot_ly(df2, x = ~year, y = ~id, z =~depression,
+        type = "scatter3d", mode = "lines",
+        color = ~depression,
+        colors = colorRamp(c("darkgreen", "darkorange", "red")),
+        size = I(4)) %>%
+  layout(title = "Development of `depression` for first 100 Individuals",
+         scene = list(camera = list(
+           eye = list(x = -4, y = -5, z = 3),
+           # up = list(x = 0, y = 0, z = 1)
+           center = list(x = 0, y = 0, z = -0.5)
+         ),
+         aspectmode = "manual", aspectratio = list(x=1, y=5, z=1)
+         ))
+```
+
+
+# Details on Data & GLM-Models {.tabset}
+
+See:
+
+ * **"Generalised Linear Mixed Models and its Application in R" by James Dawber**
+   * Response vectors that have correlated observations can be modeled using a mixed model (Fox, 2002). Mixed
+   models have additional random effects terms which are appropriate for representing these correlated observations.
+ * "Using the lme4 package to fit Generalized Linear Mixed-Models in R" by Inactivation, Unilateral
+ * "Generalised linear mixed models ( GLMM ) und die logistische Regression" by Jonathan Harrington
+
+
+## Data 
+
+The dependent variable `depression` is not normally distributet -> this means that 
+a standard model using `lmer()` is not necessarily the best choice to model this 
+variable. 
+
+```{r, fig.height=4}
+dist_depression <- table(df$depression)
+xx <- barplot(dist_depression, main = "Distribution of all 'depression' values",
+              ylim = c(0, max(dist_depression) + 1000))
+text(xx, dist_depression + 700, labels=dist_depression)
+
+# neglect the fact that peple have repeated measures per "depression-level".
+# i only want to see, IF a person reached a certain "depression-level" and count
+# the number of people who reached this "depression-level"
+dist_depression_levels <- df %>%
+  group_by(id) %>%
+  summarise(n_0 = as.numeric(any(depression == 0, na.rm = T)),
+            n_1 = as.numeric(any(depression == 1, na.rm = T)),
+            n_2 = as.numeric(any(depression == 2, na.rm = T)),
+            n_3 = as.numeric(any(depression == 3, na.rm = T)),
+            n_4 = as.numeric(any(depression == 4, na.rm = T)),
+            n_5 = as.numeric(any(depression == 5, na.rm = T)),
+            n_6 = as.numeric(any(depression == 6, na.rm = T)),
+            n_7 = as.numeric(any(depression == 7, na.rm = T)),
+            n_8 = as.numeric(any(depression == 8, na.rm = T)),
+            n_9 = as.numeric(any(depression == 9, na.rm = T)),
+            n_10 = as.numeric(any(depression == 10, na.rm = T)))
+
+dist_depression_levels <- sapply(dist_depression_levels, sum, na.rm = T)[-1]
+xx <- barplot(dist_depression_levels, main = "Number of people who at least once had depression level X",
+              ylim = c(0, max(dist_depression_levels) + 500))
+text(xx, dist_depression_levels + 300, labels=dist_depression_levels)
+```
+
+
+## Models
+
+Assumpotion:
+
+[GLM - Wikipedia](https://en.wikipedia.org/wiki/Generalized_linear_model)  
+[Chi squared test](https://en.wikipedia.org/wiki/Chi-squared_test)  
+
+<span style="color: green;">
+`depression` a **poisson distributed** variable -> treat `depression` as count-data. Is that reasonable?  
+</span>
+
+   * -> `lme4::glmer()`  (no quasipoisson-Method for overdispersion $\neq 1$)
+   * This distribution can be thought of as the number of occurrences of an event of interest
+   in a fixed period of time and is appropriate for variables with non-negative integer values.
+   * We could say that we see `depression` as a count of "how depressed was person X in a
+   certain year" -> more depressed gives a "higher count". That seems reasonable.
+   * Are values depression = 0 incoorporatet in the model or not?
+   * [Youtube - refresher for poisson distribution](https://www.youtube.com/watch?v=jmqZG6roVqU)
+
+
+$$log(y) = \beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... \hspace{1cm}\iff\hspace{1cm} y = e^{\beta_0 + \beta_1\cdot x_1+ \beta_2\cdot x_2 + ... } \hspace{1cm}\iff\hspace{1cm} y = e^{\beta_0} \cdot e^{\beta_1\cdot x_1} \cdot e^{\beta_2\cdot x_2} \cdot ... $$
+
+
+<span style="color: red;">
+`depression` as a **binomial distributed** variable  -> treat `depression` <- `1/10*depression` 
+as "proportion of `depression` to `no depression`"
+</span>
+
+   * -> `lme4::glmer()`
+   * This distribution is appropriate only for variables that represent a binary response
+   or number of events.
+   * We could transform `depression` <- `individual weight of depression-level for Person X`
+
+$$logit(y) = log(\frac{y}{1-y}) = \beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... \hspace{1cm}\iff\hspace{1cm} y = inverse.logit(\beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... )$$
+
+$$\Bigg(\text{odds of psychosocial risks = }\frac{\text{# value of `depression`}}{\text{# value of `no depression`}} = \frac{y}{1-y} = e^{\beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ...} = e^{\beta_0} \cdot e^{\beta_1\cdot x_1} \cdot e^{\beta_2\cdot x_2} \cdot ...  \Bigg)\hspace{1cm}$$
+
+
+<span style="color: blue;">
+`depression` as **ordinal** variable!
+</span>
+
+ * [Ordinal Regression - Wikipedia](https://en.wikipedia.org/wiki/Ordinal_regression)
+ * -> `MCMCglmm::MCMCglmm()` is able to do that with random effects.
+
+<span style="color: blue;">
+`depression` as **multinomial** variable would make sense (although the levels are ordered).
+</span> 
+
+   * -> `MCMCglmm::MCMCglmm()` is able to do that with random effects
+   * -> `nnet::multinom()` would be able to model without random effects.
+
+
+# ---------------------------------------------------
+<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+
+
+# Poisson & Binomial {.tabset}
+
+```{r, warning=FALSE}
+lmer.0 <- lmer(depression ~ year + (1 + year|id), data = df, REML = FALSE)
+coeff_table <- add_model_to_coeff_table(lmer.0)
+# summary(lmer.0)
+```
+
+We take the basic model `lmer.0 <- lme4::lmer(depression ~ year + (year|id))` and
+compare it to different `glmer()` models in order to find differences in the models.
+
+
+
+## glmer.0.poisson: `dep ~ year + (year|id)` {.tabset}
+
+$$log(y) = \beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... \hspace{1cm}\iff\hspace{1cm} y = e^{\beta_0 + \beta_1\cdot x_1+ \beta_2\cdot x_2 + ... } \hspace{1cm}\iff\hspace{1cm} y = e^{\beta_0} \cdot e^{\beta_1\cdot x_1} \cdot e^{\beta_2\cdot x_2} \cdot ... $$
+
+### Model
+
+ * Singularity of model (i.e. are the parameters on the boundary of the feasible parameter space?)
+ * Summary of model
+
+```{r}
+glmer.0.poisson <- glmer(depression ~ year + (year|id), data = df,
+                      family = "poisson")
+coeff_table <- add_model_to_coeff_table(glmer.0.poisson, coeff_table)
+isSingular(glmer.0.poisson)
+summary(glmer.0.poisson)
+# plot_model(glmer.0.poisson, type = "est", sort.est = T, show.values = TRUE, value.offset = .3)
+```
+
+### Random slope & intecept
+```{r}
+plot_model(glmer.0.poisson,type="re",sort.est = T, grid=F) # only a random intercept
+
+ggplot(as.data.frame(ranef(glmer.0.poisson)$id), aes_string(x = "`(Intercept)`")) +
+  ggtitle("Distribution of Random Intercept for 'id'") +
+  geom_density()
+
+ggplot(as.data.frame(ranef(glmer.0.poisson)$id), aes_string(x = "year")) +
+  ggtitle("Distribution of Random slope for year ('id')") +
+  geom_density()
+```
+
+### Residuals
+```{r}
+hist(residuals(glmer.0.poisson), breaks = seq(-5,5,0.1), col = "lightblue")
+# plot_model(glmer.0.poisson, type = "resid")
+```
+
+### Check Assumptions
+```{r}
+# For GLMM's, this function returns the QQ-plot for random effects.
+plot_model(glmer.0.poisson, type = "diag")
+```
+
+
+
+
+## glmer.0.binomial: `dep ~ year + (year|id)` {.tabset}
+
+$$logit(y) = log(\frac{y}{1-y}) = \beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... \hspace{1cm}\iff\hspace{1cm} y = inverse.logit(\beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ... )$$
+
+$$\Bigg(\text{odds of psychosocial risks = }\frac{\text{# value of `depression`}}{\text{# value of `no depression`}} = \frac{y}{1-y} = e^{\beta_0 + \beta_1\cdot x_1 + \beta_2\cdot x_2 + ...} = e^{\beta_0} \cdot e^{\beta_1\cdot x_1} \cdot e^{\beta_2\cdot x_2} \cdot ...  \Bigg)\hspace{1cm}$$
+
+### Model
+
+ * Singularity of model (i.e. are the parameters on the boundary of the feasible parameter space?)
+ * Summary of model
+
+```{r}
+glmer.0.binomial <- glmer(depression/10 ~ year + (year|id), data = df,
+                      family = "binomial")
+coeff_table <- add_model_to_coeff_table(glmer.0.binomial, coeff_table)
+isSingular(glmer.0.binomial)
+summary(glmer.0.binomial)
+# plot_model(glmer.0.binomial, type = "est", sort.est = T, show.values = TRUE, value.offset = .3)
+```
+
+### Random slope & intecept
+```{r}
+plot_model(glmer.0.binomial,type="re",sort.est = T, grid=F) # only a random intercept
+
+ggplot(as.data.frame(ranef(glmer.0.binomial)$id), aes_string(x = "`(Intercept)`")) +
+  ggtitle("Distribution of Random Intercept for 'id'") +
+  geom_density()
+
+ggplot(as.data.frame(ranef(glmer.0.binomial)$id), aes_string(x = "year")) +
+  ggtitle("Distribution of Random slope for year ('id')") +
+  geom_density()
+```
+
+### Residuals
+```{r}
+hist(residuals(glmer.0.binomial), breaks = seq(-5,5,0.1), col = "lightblue")
+# plot_model(glmer.0.binomial, type = "resid")
+```
+
+### Check Assumptions
+```{r}
+# For GLMM's, this function returns the QQ-plot for random effects.
+plot_model(glmer.0.binomial, type = "diag")
+```
+
+
+
+
+
+
+# Ordinal & Multinomial
+
+... 
+
+
+
+# Overfit 
+
+We might detect overfitting problems with `lme4::rePCA()`. 
+
+See `Douglas Bates, Reinhold Kliegl, Shravan Vasishth, and Harald Baayen. Parsimonious Mixed Models. arXiv:1506.04967 [stat], June 2015. arXiv: 1506.04967` for more details. 
+

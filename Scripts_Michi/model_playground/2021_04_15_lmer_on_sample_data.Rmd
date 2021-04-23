@@ -60,7 +60,7 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 
 
 ```{r}
-df <- imsbasics::load_rdata("sample.RData", "Scripts_Michi/lme4/")
+df <- imsbasics::load_rdata("sample.RData", "Scripts_Michi/model_playground/")
 ```
 
 # Intro 
@@ -155,6 +155,25 @@ plot(JWileymisc::testDistribution(tmp[["depression by residual"]]$X, extremevalu
      varlab = "Within Person depression")
 ```
 
+
+## Correlations
+
+Is there possible collinearity between depression and other variables? 
+
+```{r}
+dep_covariance <- var(df, na.rm = TRUE, use = "pairwise.complete.obs") # calculate variances & covariances
+dep_correaltion <- cov2cor(dep_covariance)
+corrplot::corrplot(dep_correaltion, method = "ellipse", cl.pos = "r")
+
+par(mar = c(15, 4, 4, 2) + 0.1)
+xx <- barplot(dep_correaltion["depression",], las = 2, ylim = c(-0.4,1),
+              main = "Correlation of other Varaibles with `depression`")
+text(xx, 1.2*dep_correaltion["depression",], cex = 0.8,
+     labels= round(dep_correaltion["depression",], 2))
+```
+
+
+
 # Analysis of independent variables {.tabset}
 
 ```{r, results='asis', fig.height=4}
@@ -207,7 +226,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 
 
-# ---------------m0 - intercept --------------------
+# ----------lmer: m0 - intercept ---------
 
 # m0_fi: `dep ~ 1` {.tabset}
 
@@ -309,7 +328,7 @@ ggplot(data = m0_comparison, mapping = aes(x = intercept, col = model)) +
 
 
 
-# ------------------ m1 - year ----------------------
+# ----------lmer: m1 - year ----------------
 
 # m1_fi_fs: `dep ~ 1 + year` {.tabset}
 
@@ -589,7 +608,16 @@ knitr::kable(coeff_table, format = "simple")
 
 Parameter Estimates with standard errors: 
 
+ * `(Intercept)` = fixed effect estimate for the intercept 
+ * `year` = fixed effect estimate for `year`
+
+ * `sd__Observations` = Standard Deviation of Residuals 
+ * `sd__(Intercept)` = random effect on intercept
+ * `sd__year` = random effect on `year`
+ * `cor__(Intercept).year` = correlation of random intercept and `year` 
+
 ```{r}
+library(modelsummary)
 modelsummary::modelsummary(list(m0_fi = m0_fi, 
                                 m0_fi_ri = m0_fi_ri, 
                                 m1_fi_fs = m1_fi_fs, 
@@ -602,7 +630,24 @@ modelsummary::modelsummary(list(m0_fi = m0_fi,
                            )
 ```
 
+Results: 
 
+We see in this simple models, that: 
+
+ * Random Effect on Residuals is higher than on Intercept --> The error we make is 
+ (on average) smaller than the individual offset. We can't conclude that for individuals, 
+ because we only look at the mean deviation (random effect). BUT it gives us a hint, 
+ that the general magnitude of our estimation-errors is about the same (even smaller) 
+ than the error on the intercepts. 
+ * If we incoorporate `year` the models become slightly better (although `year` might 
+ be a bad predictor for the individual, beause there is severe fluctuation for individuals)
+ * The more variables (fi, ri, fs, rs) we incorporate, the higher the effect of 
+ `year` -> this doesn't necessarily mean something. 
+ * Correlation between random intercept and random slope is about -0.56 --> quite big... 
+ This means: The lower/higher the start value (intercept) of a person, the higher/lower 
+ the effect of year (on average).
+   * People who have a low starting value tend to vary more over time. 
+   * People woh have a high starting value tend to vary less over time.
 
 
 # --------------------------------------------
@@ -678,16 +723,6 @@ See [https://cran.r-project.org/web/packages/lmerTest/lmerTest.pdf](https://cran
  * `lmerTest::contest()` ?
  * `lmerTest::show_test()` ?
 
+ * `car::vif()` --> test for collinearity issues of a model (see MPM-2, 2nd semester)
 
-# --------------------------------------------
-
-# glmer
-```{r}
-# m20_fi_ri_fs_rs <- glmer(depression ~ year + (year|id), data = df)
-# summary(m20_fi_ri_fs_rs)
-```
-
-
-
-
-
+ * `lme4::mcmcsamp()` -> see "Generalised Linear Mixed Models and its Application in R" by **James Dawber**
