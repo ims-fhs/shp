@@ -1,5 +1,5 @@
 ---
-title: "lme4::lmer() on sample data"
+title: "lme4::glmer() on sample data"
 author: "Michael Schmid"
 date: "`r Sys.time()`"
 header-includes:
