@@ -527,7 +527,7 @@ for(i in 1:length(unique(df_ols3$cluster))){
                            arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
                            arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
                            hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
-                         data = df_ols3_cluster_i, index = c("id","year"), model="within")
+                         data = df_ols3_cluster_i, index = c("id","year"), model="within", effect = "twoways")
 }
 
 stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]],
@@ -573,6 +573,8 @@ df_ols3 %>%
 ggplot(df_ols3, aes(x = ausbildung)) +
   geom_bar(aes(y = ..prop.., group = 1)) +
   facet_wrap(~cluster)
+
+
 
 # Descriptive Analysis ----------------------------------------------------
 

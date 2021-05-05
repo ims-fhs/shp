@@ -23,48 +23,49 @@ source("R/import.R")
 load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W21-SPSS")
 ys <- "2004"; ye <- "2019"
 
-# ## ----------------------- P - Import easy variables ---------------------------
-# ## Beanspruchungsfolgen
-# depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = ys, year_end = ye) # Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
-# ermuedung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF51"), year_start = ys, year_end = ye) # Erschöpfung nach Arbeit um Sachen zu machen
-# stress_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW604"), year_start = ys, year_end = ye) # Stress bei der Arbeit
-# gesundheitliche_erkrankung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC04A"), year_start = ys, year_end = ye) # Gesundheitliche Probleme: Rückenweh
-# ## Bedingungen/Belastungen: Arbeit
-# arbeit_zufriedenheit_aufgaben <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW229"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Zufriedenheit: Interessante Aufgaben
-# art_arbeitszeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW71A"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Art der Arbeitszeit
-# einbezug_entscheidungen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW91"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Einbezug bei Entscheidungen/Meinungen
-# arbeitskontrolle_personen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW87"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitskontrolle anderer Personen
-# qualifikation_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW100"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Qualifikation für Arbeit
-# arbeitsstunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW77"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Anzahl Arbeitsstunden pro Woche
-# wochenend_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW218"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Wochenendearbeit
-# nachtarbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW216"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Nachtarbeit
-# taegl_pendel_in_min <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW84"), year_start = ys, year_end = ye) # Arbeitsweg: Tägliches Pendeln in Minuten
-# arbeits_intensität <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW603"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: Intensität
-# zufriedenheit_arbeitsatmosphaere <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW94"),  year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Zufriedenheit: Arbeitsatmosphäre
-# arbeit_laerm_schmutz <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW605"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: Lärm, Schmutz
-# arbeit_ermuedende_koerperha <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW606"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: ermüdende Körperhaltung
-# ## Bedingungen/Belastungen: Care-Sphäre
-# hausarbeit_stunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF08"), year_start = ys, year_end = ye) # Hausarbeit: Stunden pro Woche
-# beeintraechtigung_arbeit_privat <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF50"), year_start = ys, year_end = ye) # Beeinträchtigung Arbeit <-> private Aktivitäten /Familie
-# abschalten_nach_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF52"), year_start = ys, year_end = ye) # Schwierigkeit nach Arbeit abzuschalten
-# ## Bedingungen/Belastungen: Lebenslage & Ressourcen
-# einschraenkung_weg_ges_zustand <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC08"), year_start = ys, year_end = ye) # Einschränkungen wegen Gesundheitszustand bei täglichen Aktivitäten: Ausmass
-# tage_gesunheits_prob <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC11"), year_start = ys, year_end = ye) # Anzahl Tage die von Gesundheitsproblemen betroffen waren: Letzte 12 Monate
-# chronische_krankheit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC19A"), year_start = ys, year_end = ye) # Chronische Krankheit oder längerfristiges gesundheitliches Problem
-# geschlecht <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","SEXYY"),year_start = ys, year_end = ye) # Geschlecht
-# hoechster_bildungsabschluss <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","EDUCATYY"), year_start = ys, year_end = ye) # Höchster Bildungsabschluss
-# partnerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD29"), year_start = ys, year_end = ye) # Partnerschaft
-# tod_person <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYL11"), year_start = ys, year_end = ye) # Tod einer nahestehenden Person
-# ## Allgemeine Informationen zu personen
-# person_haushalt<- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","IDHOUSYY"), year_start = ys, year_end = ye) # Identifikationsnummer des Haushaltes
-# #schweizerstaatsbürgerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD19"), year_start = ys, year_end = ye) # ??
-# migrationshintergrund <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD160"),  year_start = ys, year_end = ye) # In der Schweiz geboren
-# #pflege_angehoerige <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF74"),  year_start = ys, year_end = ye) # ??
-# alter <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","AGEYY"),  year_start = ys, year_end = ye) # Alter im Jahr der Befragung
-# status <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","STATUSYY"),  year_start = ys, year_end = ye) # Art der Datensammlung: raster, proxy, persönlich  (-1 "weiss nicht" 0 "individueller Fragebogen" 1 "proxy Fragebogen" 2 "nur Haushaltsraster" 3 "kinderbetreuung" 4 "Biographischer Fragebogen ")
-# beschaeftigung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","OCCUPAYY"),  year_start = ys, year_end = ye) # Aktuelle Beschäftigung
-#
-#
+## ----------------------- P - Import easy variables ---------------------------
+## Beanspruchungsfolgen
+depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = ys, year_end = ye) # Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
+ermuedung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF51"), year_start = ys, year_end = ye) # Erschöpfung nach Arbeit um Sachen zu machen
+stress_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW604"), year_start = ys, year_end = ye) # Stress bei der Arbeit
+gesundheitliche_erkrankung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC04A"), year_start = ys, year_end = ye) # Gesundheitliche Probleme: Rückenweh
+## Bedingungen/Belastungen: Arbeit
+arbeit_zufriedenheit_aufgaben <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW229"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Zufriedenheit: Interessante Aufgaben
+art_arbeitszeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW71A"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Art der Arbeitszeit
+einbezug_entscheidungen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW91"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Einbezug bei Entscheidungen/Meinungen
+arbeitskontrolle_personen <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW87"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitskontrolle anderer Personen
+qualifikation_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW100"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Qualifikation für Arbeit
+arbeitsstunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW77"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Anzahl Arbeitsstunden pro Woche
+arbeitsstunden_woche_vereinbart <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW74"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Anzahl Arbeitsstunden pro Woche vereinbart
+wochenend_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW218"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Wochenendearbeit
+nachtarbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW216"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Nachtarbeit
+taegl_pendel_in_min <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW84"), year_start = ys, year_end = ye) # Arbeitsweg: Tägliches Pendeln in Minuten
+arbeits_intensität <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW603"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: Intensität
+zufriedenheit_arbeitsatmosphaere <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW94"),  year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Zufriedenheit: Arbeitsatmosphäre
+arbeit_laerm_schmutz <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW605"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: Lärm, Schmutz
+arbeit_ermuedende_koerperha <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYW606"), year_start = ys, year_end = ye) # Aktuelle Haupttätigkeit: Arbeitsrythmus: ermüdende Körperhaltung
+## Bedingungen/Belastungen: Care-Sphäre
+hausarbeit_stunden_woche <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF08"), year_start = ys, year_end = ye) # Hausarbeit: Stunden pro Woche
+beeintraechtigung_arbeit_privat <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF50"), year_start = ys, year_end = ye) # Beeinträchtigung Arbeit <-> private Aktivitäten /Familie
+abschalten_nach_arbeit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYF52"), year_start = ys, year_end = ye) # Schwierigkeit nach Arbeit abzuschalten
+## Bedingungen/Belastungen: Lebenslage & Ressourcen
+einschraenkung_weg_ges_zustand <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC08"), year_start = ys, year_end = ye) # Einschränkungen wegen Gesundheitszustand bei täglichen Aktivitäten: Ausmass
+tage_gesunheits_prob <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC11"), year_start = ys, year_end = ye) # Anzahl Tage die von Gesundheitsproblemen betroffen waren: Letzte 12 Monate
+chronische_krankheit <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC19A"), year_start = ys, year_end = ye) # Chronische Krankheit oder längerfristiges gesundheitliches Problem
+geschlecht <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","SEXYY"),year_start = ys, year_end = ye) # Geschlecht
+hoechster_bildungsabschluss <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","EDUCATYY"), year_start = ys, year_end = ye) # Höchster Bildungsabschluss
+partnerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD29"), year_start = ys, year_end = ye) # Partnerschaft
+tod_person <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYL11"), year_start = ys, year_end = ye) # Tod einer nahestehenden Person
+## Allgemeine Informationen zu personen
+person_haushalt<- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","IDHOUSYY"), year_start = ys, year_end = ye) # Identifikationsnummer des Haushaltes
+#schweizerstaatsbürgerschaft <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD19"), year_start = ys, year_end = ye) # ??
+migrationshintergrund <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYD160"),  year_start = ys, year_end = ye) # In der Schweiz geboren
+#pflege_angehoerige <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF74"),  year_start = ys, year_end = ye) # ??
+alter <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","AGEYY"),  year_start = ys, year_end = ye) # Alter im Jahr der Befragung
+status <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","STATUSYY"),  year_start = ys, year_end = ye) # Art der Datensammlung: raster, proxy, persönlich  (-1 "weiss nicht" 0 "individueller Fragebogen" 1 "proxy Fragebogen" 2 "nur Haushaltsraster" 3 "kinderbetreuung" 4 "Biographischer Fragebogen ")
+beschaeftigung <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","OCCUPAYY"),  year_start = ys, year_end = ye) # Aktuelle Beschäftigung
+
+
 # ## --------------------- P - Create constructed variables ----------------------
 # ## Manually constructed P-variables 1
 # ##  - Staatsbürgerschaft (PYYD19, PYYD21, PYYD23)
@@ -111,33 +112,35 @@ ys <- "2004"; ye <- "2019"
 # save(df_raw_p, file = "data/df_raw_p.R")
 # load("data/df_raw_p.R")
 #
-# ## ---------------/-------------------------------------------/-----------------
-# ## --------------------------- H - Import easy variables -----------------------
-#
-# load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W21-SPSS")
-# haushaltsaequivalenzeinkommen <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","IYYEQON"), year_start = ys, year_end = ye) # Jährliches Haushaltseinkommen (Aequivalenz), OECD, netto
-#
-#
-# ## --------------------- H - Create constructed variables ----------------------
-# ## Manually constructed H-variables 1
-# ##  - Unentgeldliche Pflege von Personen ausserhalb des eigenen Haushaltes (using HYYF64, HYYF721, HYYF722, HYYF723, HYYF724, HYYF725)
-# ##  ----> They are never avaliable in year 2013 (and partially not available in 2004)
-# ##
-# av_2 <- data.frame(years = seq(ys,ye))
-# for (i in c("HYYF64", "HYYF721", "HYYF722", "HYYF723", "HYYF724", "HYYF725")) {
-#   my_availability <- years_available("H_USER.sav", load_path, i, year_start = ys, year_end = ye)
-#   names(my_availability)[2] <- i
-#   av_2 <- left_join(av_2, my_availability)
-# }
-# betreuung_ausserhalb <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF64"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: Ja, nein".
-# betreuung_ausserhalb_wer1 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF721"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
-# betreuung_ausserhalb_wer2 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF722"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
-# betreuung_ausserhalb_wer3 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF723"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
-# betreuung_ausserhalb_wer4 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF724"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
-# betreuung_ausserhalb_wer5 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF725"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
-#
-#
-#
+## ---------------/-------------------------------------------/-----------------
+## --------------------------- H - Import easy variables -----------------------
+
+load_path <- paste0("data/rawdata/Data_SPSS/SHP-Data-W1-W21-SPSS")
+haushaltsaequivalenzeinkommen <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","IYYEQON"), year_start = ys, year_end = ye) # Jährliches Haushaltseinkommen (Aequivalenz), OECD, netto
+
+
+## --------------------- H - Create constructed variables ----------------------
+## Manually constructed H-variables 1
+##  - Unentgeldliche Pflege von Personen ausserhalb des eigenen Haushaltes (using HYYF64, HYYF721, HYYF722, HYYF723, HYYF724, HYYF725)
+##  ----> They are never avaliable in year 2013 (and partially not available in 2004)
+##
+av_2 <- data.frame(years = seq(ys,ye))
+for (i in c("HYYF64", "HYYF721", "HYYF722", "HYYF723", "HYYF724", "HYYF725")) {
+  my_availability <- years_available("H_USER.sav", load_path, i, year_start = ys, year_end = ye)
+  names(my_availability)[2] <- i
+  av_2 <- left_join(av_2, my_availability)
+}
+betreuung_ausserhalb <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF64"), year_start = 2004, year_end = 2012) # "Betreuung ausserhalb der Familie: Ja, nein".
+betreuung_ausserhalb_2 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF64"), year_start = 2014, year_end = 2019) # "Betreuung ausserhalb der Familie: Ja, nein".
+betreuung_ausserhalb <- left_join(betreuung_ausserhalb, betreuung_ausserhalb_2)
+betreuung_ausserhalb_wer1 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF721"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
+betreuung_ausserhalb_wer2 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF722"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
+betreuung_ausserhalb_wer3 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF723"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
+betreuung_ausserhalb_wer4 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF724"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
+betreuung_ausserhalb_wer5 <- import_long_cols("H_USER.sav", load_path, cols = c("IDHOUS","HYYF725"), year_start = ys, year_end = ye) # "Betreuung ausserhalb der Familie: wer".
+
+
+
 # ## Manually constructed H-variables 2
 # ##  - Kinderbetreuung Ja/Nein (HLDFFSYY, HYYF53, HYYF54, HYYF55, HYYF56) or HLDTYPYY ?
 # ##  - Alleinerziehend Ja/Nein (HLDFFSYY, HYYF53, HYYF54, HYYF55, HYYF56) or HLDTYPYY ?
