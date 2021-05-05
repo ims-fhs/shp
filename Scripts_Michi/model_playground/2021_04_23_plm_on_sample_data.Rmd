@@ -1,0 +1,122 @@
+---
+title: "lme4::glmer() on sample data"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: yes
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+div.blue { 
+  background-color:#e6f0ff; 
+  border-radius: 5px; 
+  padding: 20px;
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+source("../00_functions.R")
+
+library(tidyverse)
+library(shp)
+library(plotly)
+library(plm)    
+
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+
+```{r}
+df <- imsbasics::load_rdata("sample.RData", "Scripts_Michi/model_playground/")
+```
+
+# Intro
+
+In this script I want to play around different (econometric) fixed effects models. 
+
+
+
+The column "year" needs to be transformed to numeric values.
+```{r}
+table(sapply(X = df, FUN = class))
+which(sapply(X = df, FUN = class) == "character")
+df$year <- as.numeric(df$year)
+```
+
+
+```{r, fig.width=8.4}
+# We want to visualize the development of `depression` over time for the first 100 people
+# we Add NA's to have nice separated lines (per person)
+ind_add_NA <- which(!duplicated(df$id))[1:100]
+ind_add_NA[1] <- 0
+df2 <- berryFunctions::insertRows(as.data.frame(df[1:max(ind_add_NA),]), r = ind_add_NA,
+                                  new= NA, rcurrent = TRUE)
+plot_ly(df2, x = ~year, y = ~id, z =~depression,
+        type = "scatter3d", mode = "lines",
+        color = ~depression,
+        colors = colorRamp(c("darkgreen", "darkorange", "red")),
+        size = I(4)) %>%
+  layout(title = "Development of `depression` for first 100 Individuals",
+         scene = list(camera = list(
+           eye = list(x = -4, y = -5, z = 3),
+           # up = list(x = 0, y = 0, z = 1)
+           center = list(x = 0, y = 0, z = -0.5)
+         ),
+         aspectmode = "manual", aspectratio = list(x=1, y=5, z=1)
+         ))
+```
+
+
+
+# `plm::plm()` 
+
+See `vignette("A_plmPackage", package = "plm")`
+
+ * The linear panel model 
+ * The (quasi-)demeaning framework 
+ * 
+
+ * 
+
+```{r}
+plm.0 <- plm(depression ~ year, data=df, model="within", type = "")
+summary(plm.0)
+```
+
+
+
+
+# other packages
+
+ * <span style="color: green;">`PLMIX`: Bayesian Analysis of Finite Mixtures of Plackett-Luce Models for Partial Rankings/Orderings </span>
+   * [Link](https://cran.r-project.org/web/packages/PLMIX/index.html)
+ * <span style="color: green;">`PLmixed`: Estimate (Generalized) Linear Mixed Models with Factor Structures </span>
+   * [Link](https://cran.r-project.org/web/packages/PLmixed/index.html)
+ * <span style="color: red;">`plmm`: Partially Linear Mixed Effects Model </span>
+   * [Link](https://cran.r-project.org/web/packages/plmm/index.html)
