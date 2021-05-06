@@ -28,3 +28,21 @@ years_available <- function(file = stop("Please provide a file name in the forma
   }
   return(data.frame(years = years, available = available))
 }
+
+
+
+#' print a brief summary of a dataset (used to have regular information during import)
+#'
+#' @param df A data.frame (needs a columns "id" & "person_haushalt")
+#'
+#' @return
+#' @export
+#'
+#' @examples
+data_summary <- function(df) {
+  cat("\n\n.........................................")
+  cat("\n Dimension of Data:          ", paste(dim(df), collapse = " x "))
+  cat("\n Number of unique people:    ", length(unique(df$id)))
+  cat("\n Number of unique households:", length(unique(df$person_haushalt)))
+  cat("\n.........................................\n")
+}

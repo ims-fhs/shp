@@ -15,14 +15,14 @@
 # - "Alleinerziehend Ja/Nein"? (*HLDFFSYY*, HYYF53, HYYF54, HYYF55, HYYF56) & HLDTYPYY
 # --> ok (mapping (21,22,23,41,42,43,44) -> 0 / (11,12,13) -> 1 / (31,32,33) -> 2)
 # --> maybe more details possible with incorporation of HLDTYPYY
-
-imsbasics::clc()
-library(tidyverse)
-# library(shp)
-source("R/import.RData")
-load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
-ys <- "2004"; ye <- "2019"
-
+#
+# imsbasics::clc()
+# library(tidyverse)
+# # library(shp)
+# source("R/import.RData")
+# load_path <- paste0("data/rawdata/Data SPSS/SHP-Data-W1-W21-SPSS")
+# ys <- "2004"; ye <- "2019"
+#
 # ## ----------------------- P - Import easy variables ---------------------------
 # ## Beanspruchungsfolgen
 # depression <- import_long_cols("P_USER.sav", load_path, cols = c("IDPERS","PYYC17"), year_start = ys, year_end = ye) # Niedergeschlagenheit, Hoffnungslosigkeit, Angst, Depression: Häufigkeit
@@ -254,7 +254,7 @@ ys <- "2004"; ye <- "2019"
 #
 #
 # ## ---------------/-------------------------------------------/-----------------
-# ## --------------------------- P&H - Merge P & H variables ---------------------
+# ## ----------------- P&H - Merge P & H variables -> df & df_long ---------------
 # ## Zusammen basteln von P und H Datensatz
 # ## Kommentar Michi: IDHOUS04-IDHOUS19 in df_raw_p hat viele lücken --> Imputation im
 # ## Fall   x,x,x,NA,NA,NA,X,X,X   könnte sinnvoll sein.
@@ -294,12 +294,10 @@ ys <- "2004"; ye <- "2019"
 # df <- left_join(df, h_datensatz_18, by = c("IDHOUS18" = "ID"))
 # df <- left_join(df, h_datensatz_19, by = c("IDHOUS19" = "ID"))
 #
-#
 # save(df, file = "data/df.RData")
 #
 # imsbasics::clc()
 # load("data/df.RData")
-#
 #
 # df_long <- df %>%
 #   pivot_longer(-ID,
@@ -307,13 +305,31 @@ ys <- "2004"; ye <- "2019"
 #                names_pattern = '([A-Z]+)(\\d+)([A-Z_]*)([0-9_]*)')
 #
 # save(df_long, file = "data/df_long.RData")
+
+
+
+# ## ---------------/-------------------------------------------/---------------
+# ## ---------------------------- Operationalisierung --------------------------
 imsbasics::clc()
+library(tidyverse)
+library(shp)
+imsbasics::create_log("log_final_import_masterthesis.txt", "Scripts_Michi/import_and_analysis_adi/")
+
+# Import df_long ---------------------------------------------------------------
+cat("\nImport df_long ---------------------------------------------------------------")
 load("data/df_long.RData")
 assertthat::assert_that(nrow(df_long) == 225296)
 assertthat::assert_that(ncol(df_long) == 36)
-# df_long <- df_long %>% select_if(~sum(!is.na(.)) > 0)
+
+# Transfom all cols to numeric -------------------------------------------------
+cat("\nTransfom all cols to numeric -------------------------------------------------")
+table(sapply(df_long, class))
+df_long <- mutate_all(df_long, function(x) as.numeric(as.character(x)))
+table(sapply(df_long, class))
 
 
+# Rename columns ---------------------------------------------------------------
+cat("\nRename columns ---------------------------------------------------------------")
 colnames(df_long) <- c("id",
                        "year",
                        "depression",
@@ -326,7 +342,7 @@ colnames(df_long) <- c("id",
                        "arbeit_intensitaet",
                        "arbeit_einbezug_entscheidungen",
                        "arbeit_zufriedenheit_atmosphaere",
-                       "hausarbeit_stunden_woche",
+                       "hausarbeit_wochenstunden",
                        "beeintraechtigung_arbeit_privat",
                        "abschalten_nach_arbeit",
                        "einschraenkung_weg_ges_zustand",
@@ -350,53 +366,296 @@ colnames(df_long) <- c("id",
                        "pflege_extern_wer3",
                        "pflege_extern_wer4",
                        "pflege_extern_wer5")
+data_summary(df_long)
 
 
+# Filter 15 <= age <= 65 & occupa %in% c(1,2,3,5,6) ----------------------------
+cat("\nFilter 15 <= age <= 65 & occupa %in% c(1,2,3,5,6) ----------------------------")
 sample <- df_long %>%
   drop_na(alter) %>%
   filter(alter >= 15) %>%
   filter(alter <= 65) %>%
   filter(occupa %in% c(1,2,3,5,6))
 
-sample <- mutate_all(sample, function(x) as.numeric(as.character(x)))
-
-colnames(sample)
-
-# 63391 rows / 36 columns
-head(sample)
-
-# Anzahl Personen im df = 14081
-length(unique(df_long$id))
-# Anzahl Personen im sample df = 8811
-length(unique(sample$id))
-
-# NA per column
-map(sample, ~sum(is.na(.)))
-# NA per column in percent
-map(sample, ~sum(is.na(.))/nrow(sample))
-
-# Boxplot per variable
-as.data.frame(sample[3:ncol(sample)]) %>%
-  pivot_longer(-person_haushalt, names_to = "variablen", values_to = "daten") %>%
-  ggplot() +
-  geom_boxplot(aes(y = daten)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  facet_wrap(~variablen, scales = "free")
+data_summary(sample)
 
 
-# Barplot per variable
-as.data.frame(sample[3:ncol(sample)]) %>%
-  pivot_longer(-person_haushalt, names_to = "variablen", values_to = "daten") %>%
-  ggplot() +
-  geom_bar(aes(y = daten)) +
-  theme(axis.title.x=element_blank(),
-        axis.text.x=element_blank(),
-        axis.ticks.x=element_blank()) +
-  facet_wrap(~variablen, scales = "free")
+# Create arbeit_zeit_ueberstunden ----------------------------------------------
+cat("\nCreate arbeit_zeit_ueberstunden ----------------------------------------------")
+sample <- sample %>% mutate(arbeit_zeit_ueberstunden =
+                              arbeit_zeit_wochenstunden - arbeit_zeit_wochenstunden_vereinbart)
+
+# Create pflege_angehoerige ----------------------------------------------------
+cat("\nCreate pflege_angehoerige ----------------------------------------------------")
+
+sample <- sample %>% mutate(
+  pflege_angehoerige = case_when(
+    pflege_extern == 2 ~ 1,
+    pflege_extern == 1 & !(pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 1,
+    pflege_extern == 1 & (pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 2))
+
+table(sample$pflege_angehoerige, useNA = "ifany")
+sample$pflege_angehoerige <- factor(sample$pflege_angehoerige, levels = c(1,2), labels = c("Keine Pflege", "Pflege"))
+table(sample$pflege_angehoerige, useNA = "ifany")
+
+data_summary(sample)
 
 
-ggplot(sample %>% group_by(id) %>% summarise(n = n())) +
-  geom_bar(aes(x = n))
+# Create kml-clustering --------------------------------------------------------
+cat("\nCreate kml-clustering --------------------------------------------------------\n")
+library(kml)
+df_kml <- sample[1:3]
 
+set.seed(1)
+for (cluster_number in c(5)) {
+  for (redrawing_number in c(1)) {
+    kml_cluster_data <- pivot_wider(df_kml[1:3], names_from = year, values_from = depression)
+    cluster = clusterLongData(as.matrix(kml_cluster_data[c(2:16)]))
+
+    start_time <- Sys.time()
+    kml(cluster, nbClusters = cluster_number, nbRedrawing = redrawing_number, toPlot='none')
+    end_time <- Sys.time()
+    runtime = end_time - start_time
+    plot(cluster,cluster_number)
+    print("KML Algortihm")
+    print(runtime)
+    print(paste0("Cluster number = ", cluster_number, ". Redrawing number = ", redrawing_number))
+  }
+}
+
+cluster_size <- 5
+# kml_cluster_data <- reshape(df_kml, idvar = "id", timevar = "year", direction = "wide")
+# cluster <- clusterLongData(as.matrix(kml_cluster_data[c(2:16)]))
+# Shape_kml <- kml(cluster, nbClusters = cluster_size, nbRedrawing = 10, toPlot='both')
+plot(cluster,cluster_size)
+
+### code to add clusters to the original data
+id_not_na <- as.numeric(str_extract(cluster@idFewNA, "\\-*\\d+\\.*\\d*"))
+unique_id <- unique(df_kml$id)
+labels <- as.data.frame(cluster@c5[[1]]@clusters)
+
+real_id_not_na <- list()
+for(i in 1:length(id_not_na)) {
+  real_id_not_na[[i]] <- unique_id[id_not_na[i]]
+}
+real_id_not_na <- do.call(rbind.data.frame, real_id_not_na)
+df_labeled <- cbind(real_id_not_na, labels)
+colnames(df_labeled) <- c("id","cluster")
+
+df_clustered <- right_join(sample, df_labeled, by = "id") # right join decreases the size of the dataset
+head(df_clustered[c(1,2,3,39)])
+df_clustered$cluster <- as.numeric(df_clustered$cluster)
+
+rm(df_kml, df_labeled, kml_cluster_data, labels, real_id_not_na, cluster)
+
+data_summary(df_clustered)
+
+
+
+
+# Recode partnerschaft ---------------------------------------------------------
+cat("\nRecode partnerschaft ---------------------------------------------------------")
+df_clustered <- df_clustered %>%
+  mutate(partnerschaft = case_when(partnerschaft %in% c(1,2) ~ 1,partnerschaft == 3 ~ 2))
+df_clustered$partnerschaft <- factor(df_clustered$partnerschaft,
+                                     levels = c(1,2), labels = c("Partnerschaft", "Single"))
+table(df_clustered$partnerschaft, useNA = "ifany")
+
+
+# Recode geschlecht ------------------------------------------------------------
+cat("\nRecode geschlecht ------------------------------------------------------------")
+df_clustered$geschlecht <- factor(df_clustered$geschlecht, levels = c(1,2), labels = c("Maennlich", "Weiblich"))
+table(df_clustered$geschlecht, useNA = "ifany")
+
+
+# Create alter_2 ---------------------------------------------------------------
+cat("\nCreate alter_2 ---------------------------------------------------------------")
+ggplot(df_clustered, aes(alter, depression)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+df_clustered$alter_2 <- df_clustered$alter^2
+
+
+# Recode ausbildung ------------------------------------------------------------
+cat("\nRecode ausbildung ------------------------------------------------------------")
+table(df_clustered$ausbildung, useNA = "ifany")
+df_clustered <- df_clustered %>%
+  mutate(ausbildung = case_when(ausbildung < 4 ~ 1,
+                                ausbildung < 7 ~ 2,
+                                ausbildung < 10 ~ 3,
+                                ausbildung == 10 ~ 4))
+df_clustered$ausbildung <- factor(df_clustered$ausbildung, levels = c(1,2,3,4),
+                                  labels = c("Tiefer Bildungsstand", "Sekundarstufe II", "Höhere Berufsbildung", "Hochschule"))
+table(df_clustered$ausbildung, useNA = "ifany")
+
+
+# Recode tod_person ------------------------------------------------------------
+cat("\nRecode tod_person ------------------------------------------------------------")
+table(df_clustered$tod_person, useNA = "ifany")
+df_clustered$tod_person <- factor(df_clustered$tod_person, levels = c(1,2),
+                                  labels = c("Angehoerige Person gestorben", "Keine angehoerige Person gestorben"))
+table(df_clustered$tod_person, useNA = "ifany")
+
+
+# Recode (log-transform) haushaltsaequivalenzeinkommen -------------------------
+cat("\nRecode (log-transform) haushaltsaequivalenzeinkommen -------------------------")
+hist(df_clustered$haushaltsaequivalenzeinkommen, breaks = 100)
+hist(log(df_clustered$haushaltsaequivalenzeinkommen))
+df_clustered$haushaltsaequivalenzeinkommen <- log(df_clustered$haushaltsaequivalenzeinkommen)
+
+data_summary(df_clustered)
+
+
+
+
+
+df_ols2 <- df_clustered
+
+# Recode arbeit_einbezug_entscheidungen ----------------------------------------
+cat("\nRecode arbeit_einbezug_entscheidungen ----------------------------------------")
+table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_einbezug_entscheidungen = case_when(
+    arbeit_einbezug_entscheidungen %in% c(2,3) ~ 1,
+    arbeit_einbezug_entscheidungen == 1 ~ 2))
+df_ols2$arbeit_einbezug_entscheidungen <- factor(df_ols2$arbeit_einbezug_entscheidungen,
+                                                 levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
+table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
+
+# Recdoe arbeit_qualifikation --------------------------------------------------
+cat("\nRecode arbeit_qualifikation --------------------------------------------------")
+table(df_ols2$arbeit_qualifikation, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_qualifikation = case_when(
+    arbeit_qualifikation %in% c(1,3,4) ~ 1,
+    arbeit_qualifikation == 2 ~ 2))
+df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation,
+                                       levels = c(1,2), labels = c("Unpassend", "Passend"))
+table(df_ols2$arbeit_qualifikation, useNA = "ifany")
+
+# Recode arbeit_zeit_nacht -----------------------------------------------------
+cat("\nRecode arbeit_zeit_nacht -----------------------------------------------------")
+table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_zeit_nacht = case_when(
+    arbeit_zeit_nacht == 1 ~ 2,
+    arbeit_zeit_nacht == 2 ~ 1))
+df_ols2$arbeit_zeit_nacht <- factor(df_ols2$arbeit_zeit_nacht, levels = c(1,2), labels = c("Nein", "Ja"))
+table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
+
+
+
+
+
+
+df_ols3 <- df_ols2
+
+# Recode kinder_betreuung (2nd time) -------------------------------------------
+cat("\nRecode kinder_betreuung (2nd time) -------------------------------------------")
+table(df_ols3$kinder_betreuung, useNA = "ifany")
+df_ols3 <- df_ols3 %>%
+  mutate(kinder_betreuung = case_when(
+    kinder_betreuung == 0 ~ 1,
+    kinder_betreuung %in% c(1,2) ~ 2))
+df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(1,2), labels = c("Nein", "Ja"))
+
+
+data_summary(df_ols3)
+
+# ---------------/-------------------------------------------/---------------
+# ---------------------------- Vergleich zu Import Adi ----------------------
+cat("\nCompare to import SNF - Are the data equal? ----------------------------------")
+df_ols3_adi <- imsbasics::load_rdata("df_ols3_adi", "Scripts_Michi/")
+cat("\n ----> ",assertthat::assert_that(all(df_ols3 == df_ols3_adi, na.rm = TRUE)))
+
+# ---------------/-------------------------------------------/---------------
+# ---------------------- Reduktion & Abspeichern -------------------------------
+cat("\n\nDefine relevant variables ----------------------------------------------------")
+
+df_mt <- df_ols3
+
+var_type <- data.frame(
+  variable = c("id", "year", "depression", "cluster", "person_haushalt", # basis
+               "ausbildung", "alter", "alter_2", "geschlecht", "ch_nationalitaet", # Lebenslage
+               "einschraenkung_weg_ges_zustand", "haushaltsaequivalenzeinkommen",  # Lebenslage
+               "partnerschaft", "tod_person",                                      # Lebenslage
+               "arbeit_einbezug_entscheidungen",                                                 # Erwerbsarbeit
+               "arbeit_qualifikation", "arbeit_zeit_wochenstunden", "arbeit_zeit_ueberstunden",  # Erwerbsarbeit
+               "arbeit_zeit_nacht", "arbeit_intensitaet", "arbeit_zufriedenheit_atmosphaere",    # Erwerbsarbeit
+               "hausarbeit_wochenstunden", "kinder_betreuung", "pflege_angehoerige"),   # Carearbeit
+  type = c(rep("basis", 5), rep("lebenslage", 9), rep("erwerbsarbeit",7), rep("carearbeit",3)))
+
+assertthat::assert_that(all(var_type$variable %in% colnames(df_mt)))
+not_relevant_variables <- colnames(df_mt)[!colnames(df_mt) %in% var_type$variable]
+
+cat("\n\nRelevant variables:", length(var_type$variable), "       -->", paste(var_type$variable, collapse = ", "))
+cat("\nNot Relevant variables:", length(not_relevant_variables), "   -->", paste(not_relevant_variables, collapse = ", "))
+
+# for now we keep all variables during import
+# df_mt <- df_mt[,colnames(df_mt) %in% var_type$variable]
+
+data_summary(df_mt)
+
+
+cat("\n\nAdd relevant variables as attribute 'var_type' -------------------------------")
+attr(df_mt, "var_type") <- var_type
+
+
+cat("\n\nSave `df_mt` -----------------------------------------------------------------")
+imsbasics::save_rdata(df_mt, "df_mt", "Scripts_Michi/", force = TRUE)
+closeAllConnections()
+
+
+
+
+# # ---------------/-------------------------------------------/---------------
+# # ---------------------- Laden von df_mt & Basisanalysen -----------------------
+# imsbasics::clc()
+#
+# cat("\n\n\nLaden von df_mt & Basisanalysen-------------------------------------------")
+# df_mt <- imsbasics::load_rdata("df_mt", "Scripts_Michi/")
+#
+# cat("\n --> df_mt hat", round(100*sum(is.na(df_mt))/(nrow(df_mt)*ncol(df_mt)),1), "% NA's")
+#
+# # NA's
+# NAs_per_column <- data.frame(na_absolute = unlist(map(df_mt, ~sum(is.na(.)))),
+#                              na_relative_percent = 100*unlist(map(df_mt, ~sum(is.na(.))/nrow(df_mt))))
+# knitr::kable(NAs_per_column, format = "markdown")
+#
+#
+# # Spalten-Typen
+# table(sapply(df_mt, class))
+#
+# # Verteilung numerischer Variablen
+# as.data.frame(df_mt) %>%
+#   select_if(is.numeric) %>%
+#   pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
+#   ggplot() +
+#   geom_bar(aes(y = daten)) +
+#   # geom_histogram(aes(y = daten)) +
+#   theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank()) +
+#   facet_wrap(~variablen, scales = "free")
+#
+#
+# # Verteilung von Faktor-Variablen
+# as.data.frame(df_mt) %>%
+#   select(matches("id") | where(is.factor)) %>%
+#   pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
+#   ggplot() +
+#   geom_bar(aes(y = daten)) + # geom_bar(aes(y = daten)) +
+#   theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank()) +
+#   facet_wrap(~variablen, scales = "free")
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#

@@ -2,6 +2,7 @@
 
 export(cluster)
 export(cross_sectional)
+export(data_summary)
 export(explain)
 export(import_SPSS_file)
 export(import_SPSS_file_head)

@@ -1,0 +1,84 @@
+
+Import df_long ---------------------------------------------------------------
+Transfom all cols to numeric -------------------------------------------------
+Rename columns ---------------------------------------------------------------
+
+.........................................
+ Dimension of Data:           225296 x 36
+ Number of unique people:     14081
+ Number of unique households: 6873
+.........................................
+
+Filter 15 <= age <= 65 & occupa %in% c(1,2,3,5,6) ----------------------------
+
+.........................................
+ Dimension of Data:           63391 x 36
+ Number of unique people:     8811
+ Number of unique households: 5485
+.........................................
+
+Create arbeit_zeit_ueberstunden ----------------------------------------------
+Create pflege_angehoerige ----------------------------------------------------
+
+.........................................
+ Dimension of Data:           63391 x 38
+ Number of unique people:     8811
+ Number of unique households: 5485
+.........................................
+
+Create kml-clustering --------------------------------------------------------
+ ~ Fast KmL ~
+*S
+[1] "KML Algortihm"
+Time difference of 1.682165 secs
+[1] "Cluster number = 5. Redrawing number = 1"
+
+
+.........................................
+ Dimension of Data:           53473 x 39
+ Number of unique people:     5694
+ Number of unique households: 4380
+.........................................
+
+Recode partnerschaft ---------------------------------------------------------
+Recode geschlecht ------------------------------------------------------------
+Create alter_2 ---------------------------------------------------------------
+Recode ausbildung ------------------------------------------------------------
+Recode tod_person ------------------------------------------------------------
+Recode (log-transform) haushaltsaequivalenzeinkommen -------------------------
+
+.........................................
+ Dimension of Data:           53473 x 40
+ Number of unique people:     5694
+ Number of unique households: 4380
+.........................................
+
+Recode arbeit_einbezug_entscheidungen ----------------------------------------
+Recode arbeit_qualifikation --------------------------------------------------
+Recode arbeit_zeit_nacht -----------------------------------------------------
+Recode kinder_betreuung (2nd time) -------------------------------------------
+
+.........................................
+ Dimension of Data:           53473 x 40
+ Number of unique people:     5694
+ Number of unique households: 4380
+.........................................
+
+Compare to import SNF - Are the data equal? ----------------------------------
+ ---->  TRUE
+
+Define relevant variables ----------------------------------------------------
+
+Relevant variables: 24        --> id, year, depression, cluster, person_haushalt, ausbildung, alter, alter_2, geschlecht, ch_nationalitaet, einschraenkung_weg_ges_zustand, haushaltsaequivalenzeinkommen, partnerschaft, tod_person, arbeit_einbezug_entscheidungen, arbeit_qualifikation, arbeit_zeit_wochenstunden, arbeit_zeit_ueberstunden, arbeit_zeit_nacht, arbeit_intensitaet, arbeit_zufriedenheit_atmosphaere, hausarbeit_wochenstunden, kinder_betreuung, pflege_angehoerige
+Not Relevant variables: 16    --> arbeit_zeit_wochenstunden_vereinbart, arbeit_zeit_wochenende, arbeit_zeit_art, beeintraechtigung_arbeit_privat, abschalten_nach_arbeit, tage_gesunheits_prob, chronische_krankheit, migrationshintergrund, status, occupa, pflege_extern, pflege_extern_wer1, pflege_extern_wer2, pflege_extern_wer3, pflege_extern_wer4, pflege_extern_wer5
+
+.........................................
+ Dimension of Data:           53473 x 40
+ Number of unique people:     5694
+ Number of unique households: 4380
+.........................................
+
+
+Add relevant variables as attribute 'var_type' -------------------------------
+
+Save `df_mt` -----------------------------------------------------------------

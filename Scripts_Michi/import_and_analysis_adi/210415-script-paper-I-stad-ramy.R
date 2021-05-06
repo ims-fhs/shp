@@ -10,7 +10,7 @@ library(REEMtree)
 library(rattle)
 library(knitr)
 
-load("data/df_long.R")
+load("data/df_long.RData")
 
 assertthat::assert_that(nrow(df_long) == 225296)
 assertthat::assert_that(ncol(df_long) == 36)
@@ -60,7 +60,7 @@ sample <- df_long %>%
   filter(alter >= 15) %>%
   filter(alter <= 65) %>%
   filter(occupa %in% c(1,2,3,5,6))
-rm(df_long)
+# rm(df_long)
 
 sample <- mutate_all(sample, function(x) as.numeric(as.character(x)))
 
@@ -69,6 +69,7 @@ sample <- sample %>% mutate(
   arbeit_zeit_ueberstunden = arbeit_zeit_wochenstunden - arbeit_zeit_wochenstunden_vereinbart)
 
 # Pflege von Angehoerigen -------------------------------------------------
+# pflege_extern = 1 = "ja" / pflege_extern = 2 = "nein"
 sample <- sample %>% mutate(
   pflege_angehoerige = case_when(
     pflege_extern == 2 ~ 1,
@@ -121,7 +122,7 @@ real_id_not_na <- do.call(rbind.data.frame, real_id_not_na)
 df_labeled <- cbind(real_id_not_na, labels)
 colnames(df_labeled) <- c("id","cluster")
 
-df_clustered <- right_join(sample, df_labeled, by = "id")
+df_clustered <- right_join(sample, df_labeled, by = "id") # right join decreases the size of the dataset
 head(df_clustered[c(1,2,3,39)])
 
 # 1) OLS: L>D --------------------------------------------------------------
@@ -207,7 +208,7 @@ stargazer(ols1_norm,
 # 2) OLS A+L>D ------------------------------------------------------------
 
 df_ols2 <- df_clustered
-rm(list=setdiff(ls(), "df_ols2"))
+# rm(list=setdiff(ls(), "df_ols2"))
 
 # einbezug entscheidungen recodieren
 table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
@@ -215,7 +216,8 @@ df_ols2 <- df_ols2 %>%
   mutate(arbeit_einbezug_entscheidungen = case_when(
     arbeit_einbezug_entscheidungen %in% c(2,3) ~ 1,
     arbeit_einbezug_entscheidungen == 1 ~ 2))
-df_ols2$arbeit_einbezug_entscheidungen <- factor(df_ols2$arbeit_einbezug_entscheidungen, levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
+df_ols2$arbeit_einbezug_entscheidungen <- factor(df_ols2$arbeit_einbezug_entscheidungen,
+                                                 levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
 table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
 
 # arbeit_qualifikation recodieren
@@ -224,7 +226,8 @@ df_ols2 <- df_ols2 %>%
   mutate(arbeit_qualifikation = case_when(
     arbeit_qualifikation %in% c(1,3,4) ~ 1,
     arbeit_qualifikation == 2 ~ 2))
-df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation, levels = c(1,2), labels = c("Unpassend", "Passend"))
+df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation,
+                                       levels = c(1,2), labels = c("Unpassend", "Passend"))
 table(df_ols2$arbeit_qualifikation, useNA = "ifany")
 
 # # arbeit_qualifikation recodieren
@@ -353,7 +356,7 @@ stargazer(ols3,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 4) FE A+L+C>D
+# 4) FE A+L+C>D ----------------------------------------------------------
 ols3_fe <- plm(depression ~
               alter + alter_2 +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
@@ -388,7 +391,7 @@ stargazer(ols3_fe_ts,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 5) Pooled OLS A+L+C>D per Cluster
+# 5) Pooled OLS A+L+C>D per Cluster ----------------------------------------------------------
 ## Regressionsanalysis per Cluster
 ### Pooled OLS A+L+C>D
 class(df_ols3$cluster)
@@ -470,7 +473,7 @@ stargazer(ols3_int,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 7a) OLS A>D
+# 7a) OLS A>D ----------------------------------------------------------
 
 ols_nur_a <- plm(depression ~
                   arbeit_einbezug_entscheidungen +
@@ -485,7 +488,7 @@ stargazer(ols_nur_a,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 8) FE A+L+C>D mit Interaktionen
+# 8) FE A+L+C>D mit Interaktionen ----------------------------------------------------------
 ols3_fe_int <- plm(depression ~
                   alter + alter_2 +
                   einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
@@ -506,7 +509,7 @@ stargazer(ols3_fe_int,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 9) FE OLS A+L+C>D per Cluster
+# 9) FE OLS A+L+C>D per Cluster ----------------------------------------------------------
 ### FE A+L+C>D
 # df_ols3 <- df_ols2
 class(df_ols3$cluster)
