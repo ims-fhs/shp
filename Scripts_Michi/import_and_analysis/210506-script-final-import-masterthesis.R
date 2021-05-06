@@ -568,22 +568,38 @@ cat("\nCompare to import SNF - Are the data equal? -----------------------------
 df_ols3_adi <- imsbasics::load_rdata("df_ols3_adi", "Scripts_Michi/")
 cat("\n ----> ",assertthat::assert_that(all(df_ols3 == df_ols3_adi, na.rm = TRUE)))
 
+
 # ---------------/-------------------------------------------/---------------
-# ---------------------- Reduktion & Abspeichern -------------------------------
+# ---------------------- Manuelle Korrekturen für df_mt ----------------------------
+cat("\n\nRecode ch_nationalitaet ------------------------------------------------------")
+table(df_ols3$ch_nationalitaet, useNA = "ifany")
+df_ols3$ch_nationalitaet <- factor(df_ols3$ch_nationalitaet, levels = c(0,1), labels = c("Nein", "Ja"))
+table(df_ols3$ch_nationalitaet, useNA = "ifany")
+
+
+cat("\n\nLeave out alter_2 ------------------------------------------------------------")
+df_ols3 <- df_ols3[,!colnames(df_ols3) %in% "alter_2"]
+data_summary(df_ols3)
+
+
+
+
+# ---------------/-------------------------------------------/---------------
+# ---------------------- Relevante Variabeln & Abspeichern ---------------------
 cat("\n\nDefine relevant variables ----------------------------------------------------")
 
 df_mt <- df_ols3
 
 var_type <- data.frame(
   variable = c("id", "year", "depression", "cluster", "person_haushalt", # basis
-               "ausbildung", "alter", "alter_2", "geschlecht", "ch_nationalitaet", # Lebenslage
+               "ausbildung", "alter", "geschlecht", "ch_nationalitaet",            # Lebenslage
                "einschraenkung_weg_ges_zustand", "haushaltsaequivalenzeinkommen",  # Lebenslage
                "partnerschaft", "tod_person",                                      # Lebenslage
                "arbeit_einbezug_entscheidungen",                                                 # Erwerbsarbeit
                "arbeit_qualifikation", "arbeit_zeit_wochenstunden", "arbeit_zeit_ueberstunden",  # Erwerbsarbeit
                "arbeit_zeit_nacht", "arbeit_intensitaet", "arbeit_zufriedenheit_atmosphaere",    # Erwerbsarbeit
                "hausarbeit_wochenstunden", "kinder_betreuung", "pflege_angehoerige"),   # Carearbeit
-  type = c(rep("basis", 5), rep("lebenslage", 9), rep("erwerbsarbeit",7), rep("carearbeit",3)))
+  type = c(rep("basis", 5), rep("lebenslage", 8), rep("erwerbsarbeit",7), rep("carearbeit",3)))
 
 assertthat::assert_that(all(var_type$variable %in% colnames(df_mt)))
 not_relevant_variables <- colnames(df_mt)[!colnames(df_mt) %in% var_type$variable]
@@ -604,58 +620,3 @@ attr(df_mt, "var_type") <- var_type
 cat("\n\nSave `df_mt` -----------------------------------------------------------------")
 imsbasics::save_rdata(df_mt, "df_mt", "Scripts_Michi/", force = TRUE)
 closeAllConnections()
-
-
-
-
-# # ---------------/-------------------------------------------/---------------
-# # ---------------------- Laden von df_mt & Basisanalysen -----------------------
-# imsbasics::clc()
-#
-# cat("\n\n\nLaden von df_mt & Basisanalysen-------------------------------------------")
-# df_mt <- imsbasics::load_rdata("df_mt", "Scripts_Michi/")
-#
-# cat("\n --> df_mt hat", round(100*sum(is.na(df_mt))/(nrow(df_mt)*ncol(df_mt)),1), "% NA's")
-#
-# # NA's
-# NAs_per_column <- data.frame(na_absolute = unlist(map(df_mt, ~sum(is.na(.)))),
-#                              na_relative_percent = 100*unlist(map(df_mt, ~sum(is.na(.))/nrow(df_mt))))
-# knitr::kable(NAs_per_column, format = "markdown")
-#
-#
-# # Spalten-Typen
-# table(sapply(df_mt, class))
-#
-# # Verteilung numerischer Variablen
-# as.data.frame(df_mt) %>%
-#   select_if(is.numeric) %>%
-#   pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
-#   ggplot() +
-#   geom_bar(aes(y = daten)) +
-#   # geom_histogram(aes(y = daten)) +
-#   theme(axis.title.x=element_blank(),
-#         axis.text.x=element_blank(),
-#         axis.ticks.x=element_blank()) +
-#   facet_wrap(~variablen, scales = "free")
-#
-#
-# # Verteilung von Faktor-Variablen
-# as.data.frame(df_mt) %>%
-#   select(matches("id") | where(is.factor)) %>%
-#   pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
-#   ggplot() +
-#   geom_bar(aes(y = daten)) + # geom_bar(aes(y = daten)) +
-#   theme(axis.title.x=element_blank(),
-#         axis.text.x=element_blank(),
-#         axis.ticks.x=element_blank()) +
-#   facet_wrap(~variablen, scales = "free")
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
