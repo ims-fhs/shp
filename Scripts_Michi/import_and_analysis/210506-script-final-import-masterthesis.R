@@ -313,7 +313,7 @@
 imsbasics::clc()
 library(tidyverse)
 library(shp)
-imsbasics::create_log("log_final_import_masterthesis.txt", "Scripts_Michi/import_and_analysis_adi/")
+imsbasics::create_log("log_final_import_masterthesis.txt", "Scripts_Michi/import_and_analysis/")
 
 # Import df_long ---------------------------------------------------------------
 cat("\nImport df_long ---------------------------------------------------------------")
@@ -418,7 +418,7 @@ for (cluster_number in c(5)) {
     runtime = end_time - start_time
     plot(cluster,cluster_number)
     print("KML Algortihm")
-    print(runtime)
+    # print(runtime)
     print(paste0("Cluster number = ", cluster_number, ". Redrawing number = ", redrawing_number))
   }
 }

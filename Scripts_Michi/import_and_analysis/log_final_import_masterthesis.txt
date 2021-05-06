@@ -30,7 +30,6 @@ Create kml-clustering --------------------------------------------------------
  ~ Fast KmL ~
 *S
 [1] "KML Algortihm"
-Time difference of 1.682165 secs
 [1] "Cluster number = 5. Redrawing number = 1"
 
 
