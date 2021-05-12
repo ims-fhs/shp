@@ -47,13 +47,11 @@ save_path <- load_path
 
 # Intro 
 
-In this script we want to analyse the imported dataset for paper I in the SNF project 
-in order to get a suitable overview 
+In diesem Skript wird der importierte Datensatz explorativ untersucht. 
 
-# Preparatory Work
+# Relevante Variabeln
 
-## Renaming
-We rename the columns of our dataset to more understandable names.
+
 
 ```{r}
 load("data/df_long.RData")

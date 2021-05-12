@@ -1,0 +1,477 @@
+---
+title: "zzz_test_export_graphics_to_word"
+author: "Michael Schmid"
+date: "6.5.2021"
+output:
+  # word_document: default
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+    theme: yeti 
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+library(tidyverse)
+library(plotly)
+
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+```
+
+```{r}
+# df_mt = grosser Datensatz 
+df_mt <- imsbasics::load_rdata("df_mt", "Scripts_Michi/")
+# df = kleiner Datensatz
+df <- df_mt[,colnames(df_mt) %in% attr(df_mt, "var_type")$variable]
+
+# dataframes for numeric and factor variables
+df_numeric <- df %>% select_if(is.numeric) 
+df_factor <- df %>% select(id, year, depression, where(is.factor))
+
+
+# variable_names for nmeric and factor variables (independent)
+vars_numeric <- colnames(df_numeric)[!colnames(df_numeric) %in% "depression"]
+vars_factor <- colnames(df_factor)[!colnames(df_factor) %in% c("id", "year", "depression")]
+
+# columns id, year, depression were manually added to df_factor
+assertthat::assert_that(ncol(df) == ncol(df_numeric) + ncol(df_factor) - 3)
+```
+
+
+
+# Intro {.tabset}
+
+```{r,results='asis',fig.width=8.4}
+# Eyecatcher - visualize development of `depression` over time for the first 100 people
+
+# Let's add NA's between individuals to have nice separated lines (per person)
+ind_add_NA <- which(!duplicated(df$id))[1:100]
+ind_add_NA[1] <- 0
+df_dummy <- berryFunctions::insertRows(as.data.frame(df[1:max(ind_add_NA),]), r = ind_add_NA, 
+                                  new= NA, rcurrent = TRUE)
+
+my_colors <- c("green4", "green1", "yellow","darkorange", "red", "darkred", "darkviolet")
+
+plot_ly(df_dummy, x = ~year, y = ~id, z =~depression,
+        type = "scatter3d", mode = "lines", 
+        color = ~depression, 
+        colors = colorRamp(my_colors), 
+        size = I(4)) %>% 
+  layout(title = "zeitliche Entwicklung von `depression` der ersten 100 Personen",
+         scene = list(camera = list(
+           eye = list(x = -3, y = -4, z = 2),
+           # up = list(x = 0, y = 0, z = 1)
+           center = list(x = 0, y = 0, z = -0.5)
+         ),
+         aspectmode = "manual", aspectratio = list(x=1, y=5, z=1)
+         ))
+
+rm(df_dummy)
+```
+
+
+In diesem Skript wird der importierte Datensatz explorativ untersucht. Grundsätzlich
+wird dabei der Fokus auf die relevanten Variabeln gelegt (vgl. "Überblick").
+
+
+# Datensatz - Überblick {.tabset}
+
+Der gesamte Datensatz hat `r nrow(df_mt)` Zeilen und `r ncol(df_mt)` Spalten.
+Der gesamte Datensatz hat `r round(100*sum(is.na(df_mt))/(nrow(df_mt)*ncol(df_mt)),1)`% `NA's`
+
+Der gesamte Datensatz hat `r nrow(df)` Zeilen und `r ncol(df)` Spalten.
+Der relevante Datensatz hat `r round(100*sum(is.na(df))/(nrow(df)*ncol(df)),1)`% `NA's`
+
+
+## Ganzer Datensatz
+```{r}
+glimpse(df_mt)
+```
+
+## Relevante Variablen
+```{r}
+knitr::kable(attr(df_mt, "var_type")) %>% kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+## NA's (Relevanter Datensatz)
+```{r}
+NAs_per_column <- data.frame(na_absolute = unlist(map(df, ~sum(is.na(.)))),
+                             na_relative_percent = 100*unlist(map(df, ~sum(is.na(.))/nrow(df))))
+knitr::kable(NAs_per_column) %>% kableExtra::kable_styling(bootstrap_options = c("striped", "hover"))
+```
+
+
+# Variablen - Überblick {.tabset}
+
+Folgende Typen (Klassen) von Variabeln kommen im Datensatz vor:
+
+```{r}
+table(sapply(df, class))
+```
+
+Die Verteilung der Variabeln setzt sich folgendermassen zusammen:
+
+## numerische Variablen
+```{r, fig.height=12, fig.width=9}
+# Verteilung numerischer Variablen
+as.data.frame(df) %>%
+  select_if(is.numeric) %>%
+  pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
+  ggplot() +
+  geom_bar(aes(y = daten)) +
+  # geom_histogram(aes(y = daten)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  facet_wrap(~variablen, scales = "free", ncol = 3)
+```
+
+## Faktor-Variablen
+```{r, fig.height=7, fig.width=10}
+# Verteilung von Faktor-Variablen
+as.data.frame(df) %>%
+  select(matches("id") | where(is.factor)) %>%
+  pivot_longer(-id, names_to = "variablen", values_to = "daten") %>%
+  ggplot() +
+  geom_bar(aes(y = daten)) + # geom_bar(aes(y = daten)) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  facet_wrap(~variablen, scales = "free", ncol = 3)
+```
+
+
+# Korrelationen {.tabset}
+
+Gibt es Korrelationen unter den numerischen Variabeln und v.a. im Zusammenhang
+mit Depression?
+
+
+
+Allgemein Interssant:
+
+ * `arbeit_zeit_wochenstunden` ~ `arbeit_intensitaet` (Viel Erwerbsarbeit ~ Hohe Intensität)
+ * `arbeit_zeit_wochenstunden` ~ 1/`hausarbeit_wochenstunden` (Viel Erwerbsarbeit ~ wenig Haushalt)
+ * `arbeit_zeit_wochenstunden` ~ `arbeit_zeit_ueberstunden` (Viel Erwerbsarbeit ~ viel Überstunden)
+
+Interessant bezgl. `depression`:
+
+ * `depression` ~ `einschraenkung_weg_ges_zustand`
+ * `depression` ~ `cluster`
+ * `depression` ~ 1/`arbeit_zufriedenheit_atmosphaere`
+
+> Variabeln die stark mit `depression` korrelieren, erhalten in den Modellen automatisch
+eine grosse Signifikanz. Das ist nicht wünschenswert. Es sollte darüber nachgedacht
+werden, diese  Varibeln als Prädikatoren zu vernachlässigen.
+
+## numerische Variabeln untereinander {.tabset}
+
+### Visuell
+
+```{r, fig.height=8, fig.width=10}
+df_numeric <- df %>% select_if(is.numeric)
+
+dep_covariance <- var(df_numeric, na.rm = TRUE, use = "pairwise.complete.obs") # calculate variances & covariances
+dep_correaltion <- cov2cor(dep_covariance)
+corrplot::corrplot(dep_correaltion, method = "square", cl.pos = "r",
+                   tl.col = "black")
+```
+
+### Daten
+```{r, fig.height=8, fig.width=10}
+corrplot::corrplot(dep_correaltion, method = "number", cl.pos = "r",
+                   tl.col = "black", number.cex = 1.2)
+```
+
+
+## `depression` ~ numerische Variabeln
+```{r, fig.height=6}
+col2 <- colorRampPalette(c("#67001F", "#B2182B", "#D6604D", "#F4A582",
+                            "#FDDBC7", "#FFFFFF", "#D1E5F0", "#92C5DE",
+                            "#4393C3", "#2166AC", "#053061"))
+my_colors <- col2(201)
+my_colors <- my_colors[101 + round(100*dep_correaltion["depression",])]
+text_pos_y <- ifelse(dep_correaltion["depression",] > 0,
+                     yes = dep_correaltion["depression",] + 0.1,
+                     dep_correaltion["depression",] - 0.1)
+
+par(mar = c(15, 4, 4, 2) + 0.1)
+xx <- barplot(dep_correaltion["depression",], las = 2, ylim = c(-0.4,1.2),
+              main = "Korrelation anderer numerischer Varibeln mit `depression`",
+              col = my_colors)
+text(xx, text_pos_y, labels= round(dep_correaltion["depression",], 2))
+```
+
+
+
+# Analyse `depression` ("between")
+
+Wie hängen einzelne Variabeln mit `depression` zusammen?
+
+## Faktor-Variabeln {.tabset}
+
+>Pro Level (0-10) der `depression`:  "Wie ist die Verteilung (Zugehörigkeit) über die Faktor-Variable?"
+
+ => Wir betrachten bedingte Verteilungen (conditional distributions)
+
+Interessante Faktor-Variabeln:
+
+ * `arbeit_zeit_nacht` (`depression` ~ 1/`arbeit_zeit_nacht` ausser für `depression` = 10 ! )
+ * `arbeit_qualifikation` (bei hoher `depression`, vermehrt unpassende Qualifikation)
+ * `arbeit_einbezug_entscheidungen` (bei hoher `depression`, eher weniger Entscheidungen am Arbeitsplatz)
+ * `ausbildung` (bei hoher `depression`, vermehrt tiefer Bildungsstand)
+ * `partnerschaft` (bei hoher `depression`, vermehrt Single)
+ * `tod_person` (bei hoher `depression`, tendenziell eine angehörige Person gestorben) - sehr kleiner Effekt
+ * `geschlecht` (bei hoher `depression`, vermehrt weibliche Personen)
+ * `ch_nationalität` (bei hoher `depression`, vermehrt keine Schweizer Nationalität)
+ * `kinder_betreuung` -> kein offensichtlicher Zusammenhang
+ * `pflege_angehoerige` -> kein offensichtlicher Zusammenhang
+
+```{r, results='asis', fig.width=10, warning=FALSE}
+for (i in vars_factor) {
+  cat("\n\n###",i,"\n\n")
+  p <- ggplot(df, aes_string(x = "depression", fill = i)) +
+    stat_count(geom = "col", position = "fill") +
+    labs(y = paste("Anteil von",i,"[%]"), x = "depression") +
+    coord_flip()
+  print(p)
+}
+```
+
+
+
+## numerische Varibeln 2D {.tabset}
+
+>Pro Level (0-10) der `depression`:  "Wie ist die Verteilung (Dichte) über die numerische Variable?"
+
+ => Wir betrachten bedingte Dichten resp. Counts (absolut & relativ)
+
+ACHTUNG: Da für Level 9 & 10 von `depression` nur wenig Datenpunkte vorhanden sind,
+werden die Dichtekurven deutlich flacher resp. weniger hügelig. Die grossen Schwankungen
+für tiefe Levels von `depression` rühren von einer grösseren Datenbasis in diesen Levels.
+
+
+Interessante numerische Variabeln:
+
+ * `year` (Die Datenbasis wird von Jahr zu Jahr kleiner)
+
+```{r}
+df_year <- df %>% group_by(year) %>% summarize(n = n())
+DT::datatable(t(df_year), colnames = NULL)
+```
+
+
+ * `arbeit_intensitaet` (ein unerwartet ausgeglichenes Bild - einzige Auffälligkeit, die zu den
+ Erwartungen passt: für `depression = 9 & 10` ist ein überproportional grosser Anteil bei einer
+ grossen Arbeitsintensität (`arbeit_intensitaet = 10`))
+ * `arbeit_zufriedenheit_atmosphaere` (Erwartungegemäss: Menschen mit hoher Depression finden
+ sich - im Verhältnis zu anderen Gruppen - vermehrt in einer Situation mit Unzufriedenehit
+ bezg. Arbeitszufriedenheit/-Atmosphäre)
+ *
+ * `haushaltsäquivalenzeinkommen` (hohe Depression bei tieferem haushaltsäquivalenzeinkommen)
+
+
+```{r, results='asis', fig.width=10, fig.height=4, warning=FALSE}
+my_colors <- c("green4", "green1", "yellow","darkorange", "red", "darkred", "darkviolet")
+
+for (i in vars_numeric) {
+  cat("\n\n###",i,"{.tabset} \n\n")
+
+  p1 <- ggplot(df, aes_string(x = i, colour = quote(factor(depression)))) +
+    geom_density() +
+    ggtitle(paste("Dichte-Verteilung von",i,"pro Level der Depression")) +
+    scale_colour_manual(name = "depression",
+                        values = c(colorRampPalette(my_colors)(11)))
+    # geom_histogram()
+  print(p1)
+
+  # before going into further tabs, calculate my_df (absolute & relative counts per
+  # level of depression and i)
+  my_df <- df %>%
+    group_by_at(c("depression", i)) %>%
+    summarise(n = n(), .groups = "drop_last") %>%
+    mutate(count = sum(n),
+           relative_count = n/count)
+
+
+  cat("\n\n#### Absoluter count\n\n")
+  p2 <- ggplot(df, aes_string(x = i, fill = quote(factor(depression)))) +
+    geom_bar(position="dodge") + geom_density() +
+    ggtitle(paste("Absoluter count von",i,"pro Level der Depression")) +
+    scale_fill_manual(name = "depression",
+                        values = c(colorRampPalette(my_colors)(11)))
+  print(p2)
+
+
+  cat("\n\n#### Relativer count\n\n")
+  y_max_p3 <- max(my_df$relative_count[!is.na(my_df$depression)])
+  p3 <- ggplot(my_df, aes_string(x = i, y = "relative_count", fill = quote(factor(depression)))) +
+    geom_bar(position="dodge", stat = "identity") + ylim(c(0,y_max_p3)) +
+    ggtitle(paste("Relativer count von",i,"innerhalb des Levels der Depression")) +
+    scale_fill_manual(name = "depression",
+                    values = c(colorRampPalette(my_colors)(11)))
+  print(p3)
+}
+```
+
+
+## numerische Varibeln 3D {.tabset}
+
+
+### Absoluter Count
+
+vgl. entsprechende Darstellungen in "numerische Variabeln 2D".
+
+```{r}
+library(plotly)
+library(htmltools)
+
+my_colors <- c("green4", "green1", "yellow","darkorange", "red", "darkred", "darkviolet")
+
+plotly_absolute <- lapply(vars_numeric, function(i) {
+      # create subset of dataframe
+      my_df <- df %>%
+        group_by_at(c("depression", i)) %>%
+        summarise(n = n(), .groups = "drop_last") %>%
+        mutate(count = sum(n),
+               relative_count = n/count)
+
+      # plot for absoulte count
+      plot_ly(my_df, x = ~depression, y = ~get(i), z =~n,
+          type = "scatter3d",
+          mode = "lines",
+          color = ~depression,
+          colors = colorRamp(my_colors),
+          size = I(4)) %>%
+      layout(title = paste("Absoluter count von",i,"pro Level der Depression"),
+             scene = list(
+                 yaxis = list(title = i),
+                 zaxis = list(title = "count"),
+                 camera = list(eye = list(x = 3, y = 4, z = 2),
+                               center = list(x = 0, y = 0, z = -0.5)),
+                 aspectmode = "manual", aspectratio = list(x=1, y=3, z=1)))
+      })
+
+
+# htmltools::tagList(plotly_absolute)
+```
+
+
+### Relativer Count
+
+vgl. entsprechende Darstellungen in "numerische Variabeln 2D".
+
+```{r}
+plotly_relative <- lapply(vars_numeric, function(i) {
+      # create subset of dataframe
+      my_df <- df %>%
+        group_by_at(c("depression", i)) %>%
+        summarise(n = n(), .groups = "drop_last") %>%
+        mutate(count = sum(n),
+               relative_count = n/count)
+
+      # plot for relative count
+      plot_ly(my_df, x = ~depression, y = ~get(i), z =~relative_count,
+          type = "scatter3d",
+          mode = "lines",
+          color = ~depression,
+          colors = colorRamp(my_colors),
+          size = I(4)) %>%
+    layout(title = paste("Relativer count von",i,"innerhalb des Levels der Depression"),
+               scene = list(
+                 yaxis = list(title = i),
+                 zaxis = list(title = "relative_count"),
+                 camera = list(eye = list(x = 3, y = 4, z = 2),
+                               center = list(x = 0, y = 0, z = -0.5)),
+                aspectmode = "manual", aspectratio = list(x=1, y=3, z=1)))
+      })
+
+htmltools::tagList(plotly_relative)
+```
+
+
+# individuelle Varianz 
+
+## `depression` {.tabset}
+
+Für die abhängige Variable `depression` gibt es Varianz zwischen Individuen
+("between"), aber auch einiges an Varianz innerhalb einer Person ("whithin")
+
+```{r, message=FALSE, warning=FALSE}
+knitr::kable(multilevelTools::iccMixed(dv = "depression", id = "id", data = df), align = "lll")
+tmp <- multilevelTools::meanDecompose(depression ~ id, data = df)
+# str(tmp, nchar.max = 30)
+```
+
+### between
+Auf einem Signifikanzlevel von $\alpha = 0.001$, sehen wir einige Personen die als 
+extreme Werte betrachtet werden können. Diese haben im Mittel einen sehr hohen Wert 
+für Depression. Diese Fälle sind für individuelle Betrachtungen sehr interessant. 
+
+```{r}
+plot(JWileymisc::testDistribution(tmp[["depression by id"]]$X, extremevalues = "theoretical", ev.perc = .001),
+     varlab = "Between Person depression")
+```
+
+
+### within
+The Varianz von `depression` innerhalb einzelner Personen ("within") ist sehr spitz. 
+Dh: Viele Personen zeigen keine grossen Abweichungen, einzelne jedoch relativ stark. 
+Auch hier sind Ausreisser interessant, da sich die Frage stellt, warum sich der 
+Wert für `depression` so stark verändert hat. 
+
+```{r}
+plot(JWileymisc::testDistribution(tmp[["depression by residual"]]$X, extremevalues = "theoretical", ev.perc = .001),
+     varlab = "Within Person depression")
+```
+
+
+
+## unabhängige numerische Variablen {.tabset}
+
+```{r, results='asis', fig.height=4}
+cols <- names(df_numeric)[!names(df_numeric) %in% c("depression", "id")]
+
+# for (i in cols[1:3]) {
+for (i in cols) {
+  cat("\n\n### ",i, "{.tabset}\n\n\n")
+  # barplot(table(df[,i]), main = paste0("Verteilung aller Einträge von '",i,"'"), las = 2)
+  # cat("\n\n")
+  print(knitr::kable(multilevelTools::iccMixed(dv = i, id = "id", data = df), align = "lll"))
+  cat("\n\n\n")
+
+  tmp <- multilevelTools::meanDecompose(as.formula(paste(i, "~ id")), data = df)
+
+  # cat("\n\n#### between \n\n")
+  plot(JWileymisc::testDistribution(tmp[[paste(i, "by id")]]$X, extremevalues = "theoretical", ev.perc = .001),
+       varlab = paste("Between Person", i))
+
+  # cat("\n\n#### within \n\n")
+  plot(JWileymisc::testDistribution(tmp[[paste(i, "by residual")]]$X, extremevalues = "theoretical", ev.perc = .001),
+     varlab = paste("Within Person", i))
+}
+```
+
+
+## unabhängige Faktor-Variabeln 
+
+Nötig? 
