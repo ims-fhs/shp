@@ -1,0 +1,417 @@
+---
+title: "plm::plm() on Master-Thesis data"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+div.blue { 
+  background-color:#e6f0ff; 
+  border-radius: 5px; 
+  padding: 20px;
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+# source("../00_functions.R")
+
+library(tidyverse)
+library(shp)
+library(plotly)
+library(plm)    
+library(stargazer)
+library(lme4)
+library(lmerTest) # allows lme4-models to create degrees of Freedom & p-values in summary
+library(kableExtra)
+library(modelsummary)
+
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+
+```{r}
+df_mt <- imsbasics::load_rdata("df_mt.RData", "Scripts_Michi/")
+var_type <- attr(df_mt, "var_type")
+
+base_types <- c("lebenslage", "erwerbsarbeit", "carearbeit")
+base_vars <- var_type$variable[var_type$type %in% base_types]
+
+base_formula <- as.formula(paste("depression ~", paste(base_vars, collapse = " + ")))
+
+models <- list()
+```
+
+# Intro
+
+In diesem Script wollen wie die diversen Funktionalitäten des `plm-package` am 
+importierten Datensatz anwenden. Bei der Modellierung fokussieren aus explorativen Gründen 
+auf keine spezifische (theoriegeleitete) Formel ($y \sim x_1 + x_2 + ... + x_n$)  sondern 
+versuchen, die wichtigen Variabeln der Typen "lebenslage", "erwerbsarbeit" und "carearbeit" 
+miteinzubeziehen.  
+
+
+```{r}
+var_type
+base_formula
+```
+
+
+# Modelle zur Analyse (Verständnis)
+
+## Unbalancedness
+
+Wie stark ist der Datensatz balanciert resp. unbalancert? 
+
+Der gesamte Datensatz, sowie der reduzierte Datensatz ("wichtige" Variabeln) haben 
+einen "gamma"-Wert 0.66, "nu"-wert 0.79. (1 = balanciert / 0 = unbalanciert)
+
+```{r}
+## Balanciert? 
+punbalancedness(df_mt, index = c("id", "year"))
+punbalancedness(df_mt[,var_type$variable], index = c("id", "year"))
+```
+
+## `m.pvcm` - Variable Coefficient Models {.tabset}
+
+Wir erzeugen ein Modell pro Individuum. Dies gibt eine Übersicht, wie die individuellen 
+Regressionsgeraden (Regressions-Hyperebenen) aussehen würden. Diese Modelle besitzen 
+eine schlechte Generalisierbarkeit (starker overfit), da sie die Grundgesamtheit der Daten vernachlässigt 
+und immer nur ganz kleine "Mini-Modelle" pro Individuum generiert. Diese Modelle 
+besitzen einen extrem guten Fit, da sie pro Individuum individuell 
+zusammengeschnitten sind. 
+
+Da die Basisformel `r length(base_vars)` unabhängige Variabeln besitzt, die geschätzt 
+werden müssen, würden für Modelle auf individueller Ebene mind `r length(base_vars)` + 2 
+Messungen benötigt (Aufgrund von Faktor-Variabeln ist die tatsächliche Zahl sogar noch 
+grösser). Da die maximale Zeitspanne `r max(df_mt$year) - min(df_mt$year)` betr$gt, haben 
+wir auch maximal `r max(df_mt$year) - min(df_mt$year)` Datenpunkte pro Person zu Verfügung. 
+
+> The "within" model cannot work, as it needs T>(K+1) for estimating the separate regressions for each individual.
+
+Aus diesem Grund betrachten wir hier jede Variable separat (`depression ~ x`) und 
+verkelinern den Datensatz auf diejenigen Individuen, für die ein Modell tatsächlich 
+geschätzt werden kann: 
+
+ * für numerische unabhängige Variabeln -> alle Individuen mit mehr 3 o. mehr Beobachtungen.
+ * für Faktor-Varaibeln mit 2 levels -> alle Individuen mit 4 o. mehr Beobachtungen.
+ * für Faktor-Variabeln mit 3 o. mehr levels -> keine Betrchtung, da nur `ausbildung` betroffen, 
+ welche immer zeitlich invariat ist und die Betrchtung keinen Sinn macht. 
+
+Da jeweils immer nur einzelne lineare Zusammenhänge betrachtet werden, sollte bei 
+der Interpretation keine fundamentalen Schlüsse gezogen werden.  
+
+> Für Erkenntnisse, die globale Effekte auf individueller Ebene betreffen, kann diese 
+Methode trotzdem einen wichtigen Beitrag liefern.
+
+--- 
+
+> Für numerische Variablen sehen wir den direkten linearen Zusammenhang von `depression` 
+und der Variable 
+
+> Für Faktor-Variabeln sehen wir nur Individuen, die einem Wechsel der Faktoren erlebt 
+haben. z.B. für `ch_nationalitaet` sehen wir den Offset der `depression` für Personen 
+die beide Zustände (`Ja` und `Nein`) erlebt haben. 
+
+Interessante Variabeln: 
+
+ * `einschraenkunge_weg_ges_zustand` zeigt eindeutig öfters einen positiven linearen Zusammenhang. 
+ * `arbeit_zeit_nacht` hat öfters eine negativen linearen Zusammenhang. Dh: Personen, 
+ welche sowohl Nachtarbeitszeit als auch keine Nachtarbeitszeit erlebt haben, hatten 
+ grundsätzlich weniger `depression` angegeben -> das ist interessant, da es entgegen 
+ der Intuition scheint. --> gibt jedoch viele Erklärungsmöglichkeiten (wünschenswerte 
+ Nachtarbeit, freiwillige Nachtarbeit, positive Auswirkung der nachtarbeit auf andere 
+ Lebensbereiche, ...)
+ * `arbeit_zufriedenheit_atmosphaere` hat öfters einen negativen linearen Zusammenhang -> scheint intuitiv 
+ * `pflege_angehoerige` hat öfters einen negativen linearen Zusammenhang. Dh: Personen, 
+ die sowohl angehörige gepflegt haben als auch nicht, gaben grundsätzlich tiefere 
+ Werte für `depression` an, wenn sie angehörige geplfegt haben --> interessant!! --> 
+ Auch hier gibt es jedoch viele weitere Erklärungsmöglichkeiten.
+ 
+
+
+```{r, results='asis', fig.width=10, warning=FALSE}
+# # see https://r.789695.n4.nabble.com/error-using-pvcm-on-unbalanced-panel-data-td1569157.html
+# pvcm_vars <- base_vars[!base_vars %in% "ausbildung"]
+# 
+# for (i in pvcm_vars) {
+# # for (i in c("alter", "partnerschaft")) {
+#   cat("\n\n###",i,"\n\n")
+# 
+#   if (class(df_mt %>% pull(i)) == "numeric") {
+#     n_obs_needed <- 3
+#     my_x_lab <- paste0("Individueller linearer Zusammenhang zwischen `",i,"` und `depression`")
+#   } else if (class(df_mt %>% pull(i)) == "factor") {
+#     assertthat::assert_that(length(levels(df_mt %>% pull(i))) == 2)
+#     lev1 <- levels(df_mt %>% pull(i))[1]
+#     lev2 <- levels(df_mt %>% pull(i))[2]
+#     my_x_lab <- paste0("Individueller Offset von `",lev2,"` im Vergleich zu `", lev1,"` bezgl. `depression`")
+#     n_obs_needed <- 4
+#   }
+# 
+#   df <- df_mt %>%
+#     filter(!is.na(depression)) %>% # abhängige Variable sollte nicht NA sein
+#     filter(!is.na(get(i))) %>% # unabhängige Variable sollte nicht NA sein
+#     group_by(id) %>%
+#     filter(n() >= n_obs_needed) # unabhängige variable sollte mind. n_obs_needed mal vorkommen
+# 
+#   # Variable Coefficient model
+#   m.pvcm <- pvcm(depression ~ get(i), df, model = "within")
+#   
+#   # pooltest: comparison to Pooling model 
+#   m.pool_plm_compare <- plm(depression ~ get(i), df, model = "pooling")
+#   cat("\nPooltest for pooling-model")
+#   print(pooltest(m.pool_plm_compare, m.pvcm))
+#   # pooltest: comparison to FE model
+#   cat("\nPooltest for fixed-effect-model")
+#   m.fe_plm_compare <- plm(depression ~ get(i), df, model = "within")
+#   print(pooltest(m.fe_plm_compare, m.pvcm))
+#   
+#   
+#   
+#   # baseline in factor-regression is always the first level
+#   my_coefs <- coef(m.pvcm)[,2]
+# 
+#   h <- hist(my_coefs,
+#        breaks = seq(floor(min(my_coefs, na.rm = T))-0.5,ceiling(max(my_coefs, na.rm = T)) + 0.5,0.5),
+#        main = paste0("Variable ", i, " (",class(df_mt %>% pull(i)),")"),
+#        xlab = my_x_lab,  ylab = "Anzahl Personen")
+#   abline(v = mean(my_coefs, na.rm = T), col = "red", lwd = 2)
+#   text(x = mean(my_coefs, na.rm = T), y = max(h$counts), pos = 4, col = "red",
+#        labels = paste("Mittelwert: ", round(mean(my_coefs, na.rm = T),2)))
+# }
+# 
+# # Fehlermeldung für gesamtes Modell: --> # Fehler in FUN(X[[i]], ...) : insufficient number of observations
+# # m.pvcm <- pvcm(base_formula, df_mt, model="within")
+```
+
+
+## `pooltest` - poolability
+
+<div class = "blue">
+`pooltest` tests the hypothesis that the same coefficients apply to each individual.
+It is a standard F test, based on the comparison of a model obtained for the full sample 
+("pooling" or "within") and a model based on the estimation of an equation for each individual 
+(`pvcm`). The first argument of pooltest is a plm object. The second argument is a pvcm 
+object obtained with model="within" or model = "pooling". If the first argument is a 
+pooling model, the test applies to all the coefficients (including the intercepts), 
+if it is a within model, different intercepts are assumed.
+</div>
+
+
+=> vgl. Grafiken oben. Es wurde für jedes Variable Coefficient Model ein Vergleich 
+(`pooltest`) mit einem Pooling-Model und einem FE-Model (within) durchgeführt. 
+
+ * Wenn `pooltest(pool, pvcm)` einen grossen p-Wert besitzt -> Nullhypothese wird angenommen 
+ -> Die Koeffizienten & Intercept des pvcm sind stabil (= denen des Pooling-Modells) und 
+ folglich wäre ein Pooling-Modell gleich gut. 
+ **kommt nicht vor** (wäre auch erstaunlich, da immer Variabilität vorhanden ist in 
+ den Verläufen der einzelnen Individuen). 
+ * Wenn `pooltest(fe, pvcm)` einen grossen p-Wert besitzt -> Nullhypothese wird angenommen 
+ -> Die Koeffizienten des pvcm (ohne Intercpt) sind stabil (= denen des FE-Modells) und 
+ folglich wäre ein FE-Modell gleich gut. 
+ **Für Faktor-Variabeln kommt dieser Fall oft vor, da** der Unterschied zwischen den 
+ zwei Levels in vielen Fällen nicht exisitert (viele Individuen haben keinen Wechsel der 
+ Faktor-Levels erlebt). Aus diesem Grund ist im Vergleich zur Grundgesamtheit der Anteil
+ an Personen mit einem Wechsel klein. Für all diese Fälle ist ein gewöhnliches FE-Modell 
+ gleich gut, weshalb am Ende das FE-Modell als gleichgut bewertet wird (resp. die 
+ Koeffizienten als gleich bewertet werden mittels F-Test.)
+ 
+ 
+## Test for Effects 
+
+<div class = "blue"> 
+Test the presence of individual, time or twoways effects !!!
+
+plmtest implements Lagrange multiplier tests of individual or/and time effects based on
+the results of the pooling model. These Lagrange multiplier tests use only the residuals 
+of the pooling model. The first argument of this function may be either a pooling model 
+of class plm or an object of class formula describing the model. For inputted within 
+(fixed effects) or random effects models, the corresponding pooling model is calculated 
+internally first as the tests are based on the residuals of the pooling model.
+</div>
+
+**Spannend:**
+
+ * gemäss diesem Test werden in den Residuen des Pooling-Modells (basierend auf unserer 
+ Basis-Formel) keine signifikanten Zeit-Effekte mehr festgestellt. Dh: Das Pooling-Modell 
+ ist in der Lage die zeitlichen Effekte relativ gut einzufangen. 
+
+```{r}
+cat("plm test for individual effect:")
+plmtest(base_formula, data=df_mt, effect="individual")
+cat("plm test for time effect:")
+plmtest(base_formula, data=df_mt, effect="time")
+cat("plm test for twoways effect:")
+plmtest(base_formula, data=df_mt, effect="twoways")
+```
+
+# Modell-Tests (durch Modell-Vergleiche)
+
+## `pFtest` - F-Test für individuelle/Zeit-Effekte
+
+<div class = "blue"> 
+Test für individuelle o. Zeit-Effekte basierend auf dem Vergleich von FE-Modell und 
+Pool-Modell. 
+</div>
+
+Der Test schlägt vor, dass: 
+
+ * individuelle Effekte vorhanden sind (fixed Effects für Individuen sind empfehlenswert)
+ * zeitliche Effekte trendenziell nicht vorhanden sind (fixed Effekts für Zeit sind nicht empfehlenswert)
+ * interagierende Effekte vorhanden sein könnten (ev. empfehlenswert, ev. reichen individuelle 
+ Effekte aus)
+
+
+```{r}
+# pFtest(m.fe_plm, m.pool_plm) # -> is the same 
+pFtest(base_formula, data = df_mt, model = "within", effect = "individual")
+
+
+pFtest(base_formula, data = df_mt, model = "within", effect = "time")
+pFtest(base_formula, data = df_mt, model = "within", effect = "twoways")
+```
+
+
+## `phtest` - Hausmann test
+
+vgl. "Regressionsmodelle zur Analyse von Paneldaten" - Mendely.
+
+```{r}
+# phtest computes the Hausman test which is based on the comparison of two sets of estimates
+# (see Hausman (1978)). Its main arguments are two panelmodel objects or a formula. A classical
+# application of the Hausman test for panel data is to compare the fixed and the random effects
+# models
+phtest(base_formula, data = df_mt)
+```
+
+
+
+
+
+# Basic Models
+
+## `m.pool_plm`
+
+Pooling Model
+
+```{r}
+m.pool_plm <- plm(base_formula, df_mt, index = c("id","year"), model="pooling")
+models <- rlist::list.append(models, m.pool_plm = m.pool_plm)
+summary(m.pool_plm)
+```
+
+
+## `m.fe_plm`
+
+FE-Modell
+
+```{r}
+m.fe_plm <- plm(base_formula, df_mt, index = c("id","year"), model="within")
+models <- rlist::list.append(models, m.fe_plm = m.fe_plm)
+summary(m.fe_plm)
+```
+
+
+
+## `m.re_plm`
+
+RE-Modell (Definition von PLM -> Random Intercept)
+
+46% of variance components are on individual level (between) / 54% on the idiosyncratic
+level (within).
+
+```{r}
+m.re_plm <- plm(base_formula, df_mt, index = c("id","year"), model="random")
+models <- rlist::list.append(models, m.re_plm = m.re_plm)
+summary(m.re_plm)
+```
+
+## `m.re_nlme`
+
+RE-Modell (mit `nlme::lme()`) -> Formulierung als Random intercept auf "id". Die
+Koeffizienten sollten ähnlich sein zu diesen in `m.re_plm`
+
+```{r}
+m.re_nlme <- nlme::lme(base_formula, data=df_mt, random=~1|id, na.action = na.omit)
+models <- rlist::list.append(models, m.re_nlme = m.re_nlme)
+
+summary(m.re_nlme)
+```
+
+## `m.re_lme4`
+
+```{r}
+base_formula_lme4 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), "+ (1|id)"))
+
+m.re_lme4 <- lmer(base_formula_lme4, data=df_mt)
+models <- rlist::list.append(models, m.re_lme4 = m.re_lme4)
+
+summary(m.re_lme4)
+```
+
+
+## Summary
+
+```{r}
+modelsummary(models[c(1,2,3,4,5)],
+             estimate = "{estimate}{stars}",
+             statistic = "({std.error})", # "(Std: {std.error} / p: {p.value})",
+             stars = FALSE) %>%
+  column_spec(c(4,5,6), background = '#CCFFFF') # color = 'red'
+
+# see https://vincentarelbundock.github.io/modelsummary/articles/appearance.html
+# modelsummary(models, output = "table.docx")
+```
+
+# FD-Modelle (First Differences) ? 
+
+# Instrumental Variables?
+
+# Models mit depression vor 1 jahr?
+
+# Models with multiple membership?
+vgl. HSG-Kurs
+
+
+
+# Einfluss von Scaling?
+
+Kopiert von Adi (script-paper-I-stad-ramy.R -> Z.588)
+
+```{r}
+# ### Scale all Variables which are not categorical
+# df_clustered_not_scaled = df_clustered
+# df_clustered = df_clustered %>% mutate_at(c('taegl_pendeln_min',"arbeit_zeit_wochenstunden","hausarbeit_wochenstunden","tage_gesunheits_prob","person_haushalt","haushaltsaequivalenzeinkommen"), ~(scale(.) %>% as.vector))
+# ### Rerange all variables to 0-1
+# df_clustered = normalize(df_clustered, method = "range", range = c(0, 1))
+```
+
+
