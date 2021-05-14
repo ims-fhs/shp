@@ -48,6 +48,7 @@ library(lme4)
 library(lmerTest) # allows lme4-models to create degrees of Freedom & p-values in summary
 library(kableExtra)
 library(modelsummary)
+library(sjPlot)
 
 options(width = 110) # goes optimal with pre font-size in html-chunk above
 knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
@@ -86,7 +87,7 @@ base_formula
 
 # Modelle zur Analyse (Verständnis)
 
-## Unbalancedness
+## `punbalancedness` - Unbalancedness
 
 Wie stark ist der Datensatz balanciert resp. unbalancert? 
 
@@ -245,7 +246,7 @@ if it is a within model, different intercepts are assumed.
  Koeffizienten als gleich bewertet werden mittels F-Test.)
  
  
-## Test for Effects 
+## `plmtest` - Test for Effects 
 
 <div class = "blue"> 
 Test the presence of individual, time or twoways effects !!!
@@ -273,9 +274,116 @@ cat("plm test for twoways effect:")
 plmtest(base_formula, data=df_mt, effect="twoways")
 ```
 
-# Modell-Tests (durch Modell-Vergleiche)
+# LMER-Basis-Modelle
 
-## `pFtest` - F-Test für individuelle/Zeit-Effekte
+## `dep ~ (1|year)` - Random Intercept year
+
+Ein zeitlicher Effekt ist vorhanden und wird vom Random Effect aufgeschnappt.
+Für die Analysen ist das nicht sinnvoll, da die zeitliche Trend eine Entwicklung ist
+die wir **explizit** beachten wollen (und nicht als random Intercept mitberücksichtigen).
+
+`depression ~ year + (1|year)`
+
+Wenn wir die Zeit also explizit mitberücksichtien, verschwindet der zeitliche Trend
+aus der random Intercept (der Effekt wurde von der Variable `year` "aufgesogen").
+> Der zeitliche Trend verschwindet, wenn wir Zeit explizit ins Modell einführen.
+
+`depression ~ (1|id) + (1|year)` 
+
+Wenn wir random intercepts auf id's und zeit zulassen, wird die random intercept 
+für Zeit  unterschiedlich. --> Manchmal grösser / manchmal kleiner pro Jahr. 
+
+```{r, fig.width=10}
+mean_dep_per_year <- df_mt %>% group_by(year) %>%
+  summarize(mean_dep = mean(depression, na.rm = T)) %>%
+  mutate(mean_dep_recentered = mean_dep - mean(mean_dep))
+plot(mean_dep_per_year$year, mean_dep_per_year$mean_dep_recentered, type = "b", lwd = 2,
+     xlab = "Jahr", ylab = "Random Effect",
+     main = "Random Effect von Depression über die Zeit", ylim = c(-0.10, 0.12))
+grid()
+
+m.re_lme4_year1 <- lmer(depression ~ (1|year), data=df_mt, REML = F)
+raneff <- ranef(m.re_lme4_year1)
+lines(as.numeric(rownames(raneff$year)), raneff$year[,1], col = "blue", type = "b")
+abline(h = 0)
+
+m.re_lme4_year2 <- lmer(depression ~ year + (1|year), data=df_mt, REML = F)
+raneff <- ranef(m.re_lme4_year2)
+lines(as.numeric(rownames(raneff$year)), raneff$year[,1], col = "darkviolet", type = "b")
+
+m.re_lme4_id_year <- lmer(depression ~ (1|id) + (1|year), data=df_mt, REML = F)
+raneff <- ranef(m.re_lme4_id_year)
+lines(as.numeric(rownames(raneff$year)), raneff$year[,1], col = "orange", type = "b")
+
+
+legend("topleft",
+  legend = c("RE-0: Jährliche Abweichung vom Gesamtmittelwert", "RE-1: depression ~ (1|year)",
+             "RE-1: depression ~ year + (1|year)", "RE-2: depression ~ (1|year) + (1|id)"),
+  col = c("black", "blue", "darkviolet", "orange"),
+  pch = 1,  bty = "n", pt.cex = 2, cex = 1.2,
+  text.col = c("black", "blue", "darkviolet", "orange"),
+  inset = c(0.03, 0.03))
+
+cat("Koeffizienten im Model: depression ~ (1|year)")
+summary(m.re_lme4_year1)$coefficients
+cat("Koeffizienten im Model: depression ~ year + (1|year)")
+summary(m.re_lme4_year2)$coefficients
+cat("Koeffizienten im Model: depression ~ (1|year) + (1|id)")
+summary(m.re_lme4_id_year)$coefficients
+
+plot_model(m.re_lme4_year1,type="re",sort.est = T, grid=F)
+```
+
+
+## `dep ~ (1|id)` - Random Intercept id
+
+Für die ersten 100 Individuen.
+
+Gesamthaft gibt es über die Individuen keinen Trend (resp. Effekt), weshalb die zusätzliche
+Verwendung von `id` als explizite Variable keine Auswirkung auf das lmer-Modell hat. 
+
+```{r, fig.width=10, warning=FALSE}
+mean_dep_per_id <- df_mt %>% group_by(id) %>%
+  summarize(mean_dep = mean(depression, na.rm = T)) %>%
+  mutate(mean_dep_recentered = mean_dep - mean(mean_dep))
+plot(mean_dep_per_id$mean_dep_recentered[1:100], type = "b",
+     xlab = "Individuum", ylab = "Random Effect",
+     main = "Random Effect von Depression über die Individuen")
+grid()
+m.re_lme4_id1 <- lmer(depression ~ (1|id), data=df_mt, REML = F)
+raneff <- ranef(m.re_lme4_id1)
+points(raneff$id[1:100,1], col = "blue", type = "b")
+abline(h = 0)
+
+m.re_lme4_id2 <- lmer(depression ~ id + (1|id), data=df_mt, REML = F)
+raneff <- ranef(m.re_lme4_id2)
+points(raneff$id[,1], col = "red", type = "b")
+legend("topleft",
+  legend = c("RE-0: Individuelle Abweichung vom Gesamtmittelwert", "RE-1: depression ~ (1|id)",
+             "RE-1: depression ~ id + (1|id)"),
+  col = c("black", "blue", "red"),
+  pch = 1,
+  bty = "n",
+  pt.cex = 2,
+  cex = 1.2,
+  text.col = c("black", "blue", "red"),
+  inset = c(0.03, 0.03))
+
+cat("Koeffizienten im Model: depression ~ (1|id)")
+summary(m.re_lme4_id1)$coefficients
+cat("Koeffizienten im Model: depression ~ id + (1|id)")
+summary(m.re_lme4_id2)$coefficients
+
+
+plot_model(m.re_lme4_id1,type="re",sort.est = T, grid=F)
+```
+
+
+
+
+# Modell-Tests {.tabset}
+
+## `pFtest` - individuelle/Zeit-Effekte? (Pooling vs. FE)
 
 <div class = "blue"> 
 Test für individuelle o. Zeit-Effekte basierend auf dem Vergleich von FE-Modell und 
@@ -294,7 +402,6 @@ Der Test schlägt vor, dass:
 # pFtest(m.fe_plm, m.pool_plm) # -> is the same 
 pFtest(base_formula, data = df_mt, model = "within", effect = "individual")
 
-
 pFtest(base_formula, data = df_mt, model = "within", effect = "time")
 pFtest(base_formula, data = df_mt, model = "within", effect = "twoways")
 ```
@@ -304,6 +411,22 @@ pFtest(base_formula, data = df_mt, model = "within", effect = "twoways")
 
 vgl. "Regressionsmodelle zur Analyse von Paneldaten" - Mendely.
 
+Ist ein RE-Modell die gute Wahl (als Vergleich zum FE-Modell). 
+Normales lineares Modell ist immer schlechter als ein normales Random Intercept Model, 
+weshalb dieser Vergleich kein Sinn macht. Beim Hausmann Test wird deshalb das Random 
+Intercept Modell mit dem Fixed Effects Modell verglichen. (Quelle: GSERM - Lab E - min 6)
+
+ * Random Intercept Modell: Implizit unterschiedliche Intercepts (`y ~ x + (1|id)` random 
+ intercept on `id`)
+ * Fixed Effects Modell: Explizit unterschiedliche Intercepts (`y ~ x + id` dummy variable on `id`)
+
+Interpretation bei kleinem p-Wert (GSERM - Lab E - min 14): Der Unterschied der zwei Modelle ist statistisch 
+signifikant. Dh: Dummy-Variabeln alleine resp. random effects alleine kommen nicht 
+zum selben Schluss --> dh: Es braucht random effects + Dummy-Variabeln o. Gruppen-Mittelwerte 
+o. Group-Mean-Centering (random intercept alleine reicht nicht aus).  
+  
+**Falsche Interpretation** = Es braucht **nur** Dummy-Variabels resp. fixed Effects !! 
+
 ```{r}
 # phtest computes the Hausman test which is based on the comparison of two sets of estimates
 # (see Hausman (1978)). Its main arguments are two panelmodel objects or a formula. A classical
@@ -311,12 +434,93 @@ vgl. "Regressionsmodelle zur Analyse von Paneldaten" - Mendely.
 # models
 phtest(base_formula, data = df_mt)
 ```
+ 
+
+## `pwtest` - Unbeobachtete individuelle/Zeit-Effekte?
+
+<div class = "blue"> 
+Test: Unobserved (individual or time) effects?
+--> test for individual error components and serially correlated idiosyncratic errors.
+
+This semi-parametric test checks the null hypothesis of zero correlation between errors of the same group. Therefore, it has power both against individual effects and, more generally, any kind of serial correlation.
+
+...There may also be serial correlation of the “usual” kind in the idiosyncratic error
+terms, e.g., as an AR(1) process. By “testing for serial correlation” we mean testing
+for this latter kind of dependence...
+In plm we provide a number of joint, marginal and conditional ML-based tests, plus some
+semiparametric alternatives which are robust vs. heteroskedasticity and free from distributional assumptions.
+</div>
+
+The test suggests that there are: 
+ * unboserved effects on the individual level. -> (Endogeneity?)
+ * no unboserved effect on the time level. 
+
+```{r}
+pwtest(base_formula, data=df_mt, effect = "individual")
+pwtest(base_formula, data=df_mt, effect = "time")
+```
+
+## `pbsytest` - Serial Correlation or individual random effects
+
+-> vgl. 2021_04_23_plm_olayaound.R
+
+Bei unserer Datenbasis erwarten wir fast, dass diese Tests fehlschlagen... Das 
+Basis-Modell ist nicht gut genug, um sämtliche Effekte zu erklären, weshalb gemäss 
+Tests "immer" eine serielle Korrelation der Fehlerterme o. individuelle Random Effects 
+übrig bleiben.
+
+<div class = "blue"> 
+The authors observe that, although suboptimal, these tests may help detecting the
+right direction of the departure from the null, thus complementing the use of joint tests.
+</div>
+
+
+```{r}
+pbsytest(base_formula, data=df_mt, test="ar") # AR(1) - serial correlation?
+pbsytest(base_formula, data=df_mt, test="re") # individual random Effects? 
+pbsytest(base_formula, data=df_mt, test="j") # Joint Effects (ser.corr & RE)
+```
+
+
+## `pbltest` - AR(1) or MA(1) Correlation in RE-Model
+
+-> vgl. 2021_04_23_plm_olayaound.R
+
+```{r}
+pbltest(base_formula, data=df_mt, alternative="onesided")
+pbltest(base_formula, data=df_mt, alternative="twosided")
+```
+
+
+## `pbgtest & pdwtest` - Serial Correlation in General 
+
+ * pbgtest: Breusch-Godfrey Test of serial correlation for (the idiosyncratic component of) the errors in panel models.
+ * pdwtest: Durbin-Watson Test of serial correlation for (the idiosyncratic component of) the errors in panel models.
+ * pwartest: Wooldridge Test for serial correlation for (the idiosyncratic component of) the errors in fixed–effects panel models -  (AR(1) Errors).
+
+```{r}
+## Breusch–Godfrey Test for Panel Models
+# pbgtest(model.xy, order = 2)
+
+
+## Durbin-Watson Test for Panel Models (based on lmtest::dwtest() )
+# pdwtest(model.xy)
+
+
+## The test is applicable to any FE panel model, and in particular to “short” panels with small T and large n.
+pwartest(base_formula, data=df_mt)
+
+
+```
+
+
+## ...
+
+diverse weitere Tests... 
 
 
 
-
-
-# Basic Models
+# Modelle mit der Basis-Formel
 
 ## `m.pool_plm`
 
@@ -326,6 +530,14 @@ Pooling Model
 m.pool_plm <- plm(base_formula, df_mt, index = c("id","year"), model="pooling")
 models <- rlist::list.append(models, m.pool_plm = m.pool_plm)
 summary(m.pool_plm)
+```
+
+## `m.fd_plm`
+
+```{r}
+m.fd_plm <- plm(base_formula, df_mt, index = c("id","year"), model="fd")
+models <- rlist::list.append(models, m.fd_plm = m.fd_plm)
+summary(m.fd_plm)
 ```
 
 
@@ -377,21 +589,20 @@ models <- rlist::list.append(models, m.re_lme4 = m.re_lme4)
 summary(m.re_lme4)
 ```
 
-
 ## Summary
 
 ```{r}
-modelsummary(models[c(1,2,3,4,5)],
+modelsummary(models, # models[c(1,2,3,4,5)]
              estimate = "{estimate}{stars}",
              statistic = "({std.error})", # "(Std: {std.error} / p: {p.value})",
              stars = FALSE) %>%
-  column_spec(c(4,5,6), background = '#CCFFFF') # color = 'red'
+  column_spec(c(5,6,7), background = '#CCFFFF') # color = 'red'
 
 # see https://vincentarelbundock.github.io/modelsummary/articles/appearance.html
 # modelsummary(models, output = "table.docx")
 ```
 
-# FD-Modelle (First Differences) ? 
+# FD-Modelle (First Differences) ?
 
 # Instrumental Variables?
 
@@ -400,7 +611,7 @@ modelsummary(models[c(1,2,3,4,5)],
 # Models with multiple membership?
 vgl. HSG-Kurs
 
-
+# brms-Modelle
 
 # Einfluss von Scaling?
 
