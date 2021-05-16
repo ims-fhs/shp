@@ -62,10 +62,17 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 df_mt <- imsbasics::load_rdata("df_mt.RData", "Scripts_Michi/")
 var_type <- attr(df_mt, "var_type")
 
+# create a scaled dataset (where all numeric columns exept the first two are scaled)
+df_mt_scaled <- df_mt[,3:ncol(df_mt)] %>% mutate_if(is.numeric, ~(scale(.) %>% as.vector))
+df_mt_scaled <- cbind(id = df_mt$id, year = df_mt$year, df_mt_scaled)
+# create a normalized dataset (where all numeric columns exept the first two are scaled)
+df_mt_normalized <- BBmisc::normalize(df_mt[,3:ncol(df_mt)], method = "range", range = c(0, 1))
+df_mt_normalized <- cbind(id = df_mt$id, year = df_mt$year, df_mt_normalized)
+
+# create base_types, base_vars and base_formula (for modelling)
 base_types <- c("lebenslage", "erwerbsarbeit", "carearbeit")
 base_vars <- var_type$variable[var_type$type %in% base_types]
-
-base_formula <- as.formula(paste("depression ~", paste(base_vars, collapse = " + ")))
+base_formula <- formula(paste("depression ~", paste(base_vars, collapse = " + ")))
 
 models <- list()
 ```
@@ -331,6 +338,7 @@ summary(m.re_lme4_year2)$coefficients
 cat("Koeffizienten im Model: depression ~ (1|year) + (1|id)")
 summary(m.re_lme4_id_year)$coefficients
 
+cat("Random Intercepts für: depression ~ (1|year)")
 plot_model(m.re_lme4_year1,type="re",sort.est = T, grid=F)
 ```
 
@@ -374,14 +382,69 @@ summary(m.re_lme4_id1)$coefficients
 cat("Koeffizienten im Model: depression ~ id + (1|id)")
 summary(m.re_lme4_id2)$coefficients
 
-
+cat("Random Intercepts für: depression ~ (1|id)")
 plot_model(m.re_lme4_id1,type="re",sort.est = T, grid=F)
 ```
 
 
+# Einfluss von Saklierung & Normalisierung {.tabset}
 
+Am Beispiel eines Pooling & FE Modells wird aufgezeigt, dass weder Skalierung noch 
+Normalisierung die Modellresultate (des plm-pooling Modells) beeinflussen. 
+Geschätzte Koeffizienten und Konfidenzintervalle werden ensprechend skaliert - der 
+Einfluss einzelner Paramter (gemessen am p-Wert) bleibt jedoch konsistent. 
 
-# Modell-Tests {.tabset}
+## Pooling Model (plm)
+
+```{r}
+m.pool_plm <-            plm(base_formula, df_mt,            index = c("id","year"), model="pooling")
+m.pool_plm_scaled <-     plm(base_formula, df_mt_scaled,     index = c("id","year"), model="pooling")
+m.pool_plm_normalized <- plm(base_formula, df_mt_normalized, index = c("id","year"), model="pooling")
+
+modelsummary(list(basic_Model = m.pool_plm, scaled_Model = m.pool_plm_scaled, 
+                  normalized_Model = m.pool_plm_normalized), 
+             estimate = "{estimate}{stars}  ({std.error})  ",
+             statistic = " (P-value {p.value})", # "(Std: {std.error} / p: {p.value})",
+             stars = FALSE)
+
+rm(m.pool_plm, m.pool_plm_scaled, m.pool_plm_normalized)
+```
+
+## FE-Modell (plm)
+
+```{r}
+m.fe_plm <-            plm(base_formula, df_mt,            index = c("id","year"), model="within")
+m.fe_plm_scaled <-     plm(base_formula, df_mt_scaled,     index = c("id","year"), model="within")
+m.fe_plm_normalized <- plm(base_formula, df_mt_normalized, index = c("id","year"), model="within")
+
+modelsummary(list(basic_Model = m.fe_plm, scaled_Model = m.fe_plm_scaled, 
+                  normalized_Model = m.fe_plm_normalized), 
+             estimate = "{estimate}{stars}  ({std.error})  ",
+             statistic = " (P-value {p.value})", # "(Std: {std.error} / p: {p.value})",
+             stars = FALSE)
+
+rm(m.fe_plm, m.fe_plm_scaled, m.fe_plm_normalized)
+```
+
+## RE-Modell (lme4)
+```{r}
+base_formula_lme4 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), "+ (1|id)"))
+
+m.re_lme4 <-            lmer(base_formula_lme4, df_mt)
+m.re_lme4_scaled <-     lmer(base_formula_lme4, df_mt_scaled)
+m.re_lme4_normalized <- lmer(base_formula_lme4, df_mt_normalized)
+
+modelsummary(list(basic_Model = m.re_lme4, scaled_Model = m.re_lme4_scaled, 
+                  normalized_Model = m.re_lme4_normalized), 
+             estimate = "{estimate}{stars}  ({std.error})  ",
+             statistic = " (P-value {p.value})", # "(Std: {std.error} / p: {p.value})",
+             stars = FALSE, 
+             coef_omit = "SD")
+
+rm(m.re_lme4, m.re_lme4_scaled, m.re_lme4_normalized, base_formula_lme4)
+```
+
+# Modell-Tests
 
 ## `pFtest` - individuelle/Zeit-Effekte? (Pooling vs. FE)
 
@@ -426,6 +489,17 @@ zum selben Schluss --> dh: Es braucht random effects + Dummy-Variabeln o. Gruppe
 o. Group-Mean-Centering (random intercept alleine reicht nicht aus).  
   
 **Falsche Interpretation** = Es braucht **nur** Dummy-Variabels resp. fixed Effects !! 
+
+
+Vgl. [Wikipedia](https://de.wikipedia.org/wiki/Hausman-Spezifikationstest#:~:text=Der%20Hausman%2DSpezifikationstest%2C%20auch%20Durbin,unabh%C3%A4ngigen)%20Variablen%20und%20der%20St%C3%B6rgr%C3%B6%C3%9Fe.)  
+
+Der Hausmanntest ist ein Test auf Endogenität. --> Test auf den Zusammenhang zwischen 
+den erkärenden Variabeln und der Störgrösse.  
+
+$$H_0: Cov(x,e)=0$$
+Wird die Nullhypothese verworfen ist dies ein Zeichen für Endogenität --> Die 
+Integration von Instrumental variables könnte angezeigt sein. 
+
 
 ```{r}
 # phtest computes the Hausman test which is based on the comparison of two sets of estimates
@@ -526,18 +600,36 @@ diverse weitere Tests...
 
 Pooling Model
 
-```{r}
+```{r, fig.height=6}
 m.pool_plm <- plm(base_formula, df_mt, index = c("id","year"), model="pooling")
+m.pool_plm_scaled <- plm(base_formula, df_mt_scaled, index = c("id","year"), model="pooling")
+m.pool_plm_normalized <- plm(base_formula, df_mt_normalized, index = c("id","year"), model="pooling")
 models <- rlist::list.append(models, m.pool_plm = m.pool_plm)
 summary(m.pool_plm)
+plot_model(m.pool_plm, show.values = TRUE, value.offset = .5)
 ```
+
+Goldfeld-Quandt Test indicates, wheter the variances of two submodels are different. 
+(Nullhypothesis: they are eual). If the null is rejected we can assume, that the 
+variances differ for different submodels and that separate equations for each individual 
+might do a better job. --> i.e. fixed effects, etc... 
+```{r}
+lmtest::gqtest(m.pool_plm, point=0.5, alternative="two.sided")
+```
+
 
 ## `m.fd_plm`
 
-```{r}
+ * Intercept = Der Wert für $y_{it} - y_{it-1}$, wenn $x_{it} - x_{it-1} = 0$. Dh. Wenn 
+ sich innerhalb eines Jahres nichts veränder hat bei einer Person, dann steigt die 
+ Depression grundsätzlich. 
+ 
+
+```{r, fig.height=6}
 m.fd_plm <- plm(base_formula, df_mt, index = c("id","year"), model="fd")
 models <- rlist::list.append(models, m.fd_plm = m.fd_plm)
 summary(m.fd_plm)
+plot_model(m.fd_plm, show.values = TRUE, value.offset = .5)
 ```
 
 
@@ -545,12 +637,100 @@ summary(m.fd_plm)
 
 FE-Modell
 
-```{r}
+```{r, fig.height=6}
 m.fe_plm <- plm(base_formula, df_mt, index = c("id","year"), model="within")
 models <- rlist::list.append(models, m.fe_plm = m.fe_plm)
 summary(m.fe_plm)
+plot_model(m.fe_plm, show.values = TRUE, value.offset = .5)
 ```
 
+## `m.fe_plm_inst` {.tabset}
+
+Instrumental Variables. 
+
+Wir verwenden Variabeln die gemäss unserer Vermutung keinen direkten Einfluss auf 
+Depression, jedoch einen inderekten haben können (über eine andere Variable, welche 
+wir als *endogen* betrachten - korreliert mit dem Fehlerterm). 
+
+Beispiele: 
+
+ * `ausbildung` (Lebenslage) als Instrument für `arbeit_zeit_wochenstunden` (Erwerbsarbeit) 
+ * `kinder_betreuung` (Carearbeit) als Instrument für `haushaltsaequivalenzeinkommen` (Lebenslage). 
+ * `arbeit_qualifikation` (Erwerbsarbeit) als instrument für `arbeit_einbezug_entscheidungen` (Erwerbsarbeit). 
+
+Kandidaten für einen inderekten Einfluss auf `depression` (Instrumente): 
+
+ * ausbildung 
+ * alter
+ * geschlecht 
+ * ch_nationalitaet
+ * haushaltsaequivalenzeinkommen
+ * arbeit_qualifikation
+ * arbeit_zeit_wochenstunden
+ * arbeit_zeit_nacht
+ * hausarbeit_wochenstunden
+ * kinder_betreuung
+ * pflege_angehoerige
+ 
+Kandidaten für einen direkten Einfluss auf `depression`:
+ 
+ * einschraenkung_weg_ges_zustand
+ * partnerschaft 
+ * tod_person
+ * arbeit_einbezug_entscheidungen
+ * arbeit_zeit_überstunden
+ * arbeit_intensitaet
+ * arbeit_zufriedenheit_atmosphaere
+
+
+> Allgemein --> grosse Change, wenn mehr Variabeln über das "Wie fühlt sich eine Person" 
+vorhanden wären. Diese könnten als direkte endogene Variabeln betrachtet werden und 
+die aktuell vorhandnen Variabeln könnten vermehrt als Instrumente (Z) betrachtet werden, welche 
+die individuelle Gefühlslage (X) beeinflusen. 
+
+Im Falle unserer Modelle (vgl. unten) sind keine Erkenntnisse möglich. Es zeigt sich, 
+dass sämtliche geschätzten Koeffizienten keine statistische Signifikanz aufweisen. Dies 
+ist nicht erstaunlich, da sämtliche Instrumente deutlich zu schwach sind. 
+($R^2$ bei der Betrachtung von Z -> X ist deutlich zu klein. Dh: die Instrumente 
+erklären einen viel zu kleinen Teil der Variantion von X. Deshalb funktioniert die 
+zweistufige Regression in diesem Fall unglaublich schlecht. )
+
+**The instrumental variables** --> https://bookdown.org/ccolonescu/RPoE4/random-regressors.html#the-instrumental-variables-iv-method 
+**checking Instrumental Validtiy** --> https://www.econometrics-with-r.org/12-3-civ.html
+
+weitere Möglichkeiten mit `AER::ivreg()` -> Example on https://www.econometrics-with-r.org/12-4-attdfc.html 
+
+### Alle Variabeln sind Instrumente
+
+```{r}
+instrumental_formula1 <- formula(paste("depression ~", 
+                                      paste(base_vars, collapse = " + "),  " | ", 
+                                      paste(base_vars, collapse = " + ")))
+
+print(instrumental_formula1)
+
+m.fe_plm_inst1 <- plm(instrumental_formula1, df_mt, index = c("id","year"), model="within")
+models <- rlist::list.append(models, m.fe_plm_inst1 = m.fe_plm_inst1)
+summary(m.fe_plm_inst1)
+plot_model(m.fe_plm_inst1, show.values = TRUE, value.offset = .5)
+```
+
+### spezifische Instrumente 
+
+```{r}
+
+instr_vars <- c(1,2,3,4,6,10,11,13,16,17,18)
+instrumental_formula2 <- formula(paste("depression ~", 
+                                      paste(base_vars[-instr_vars], collapse = " + "),  " | ", 
+                                      paste(base_vars[instr_vars], collapse = " + ")))
+
+print(instrumental_formula2)
+
+m.fe_plm_inst2 <- plm(instrumental_formula2, df_mt, index = c("id","year"), model="within")
+models <- rlist::list.append(models, m.fe_plm_inst2 = m.fe_plm_inst2)
+summary(m.fe_plm_inst2)
+plot_model(m.fe_plm_inst2, show.values = TRUE, value.offset = .5)
+```
 
 
 ## `m.re_plm`
@@ -560,10 +740,11 @@ RE-Modell (Definition von PLM -> Random Intercept)
 46% of variance components are on individual level (between) / 54% on the idiosyncratic
 level (within).
 
-```{r}
+```{r, fig.height=6}
 m.re_plm <- plm(base_formula, df_mt, index = c("id","year"), model="random")
 models <- rlist::list.append(models, m.re_plm = m.re_plm)
 summary(m.re_plm)
+plot_model(m.re_plm, show.values = TRUE, value.offset = .5)
 ```
 
 ## `m.re_nlme`
@@ -571,23 +752,102 @@ summary(m.re_plm)
 RE-Modell (mit `nlme::lme()`) -> Formulierung als Random intercept auf "id". Die
 Koeffizienten sollten ähnlich sein zu diesen in `m.re_plm`
 
-```{r}
+```{r, fig.height=6}
 m.re_nlme <- nlme::lme(base_formula, data=df_mt, random=~1|id, na.action = na.omit)
 models <- rlist::list.append(models, m.re_nlme = m.re_nlme)
 
 summary(m.re_nlme)
+plot_model(m.re_nlme, show.values = TRUE, value.offset = .5)
 ```
 
 ## `m.re_lme4`
 
-```{r}
+```{r, fig.height=6}
 base_formula_lme4 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), "+ (1|id)"))
 
 m.re_lme4 <- lmer(base_formula_lme4, data=df_mt)
 models <- rlist::list.append(models, m.re_lme4 = m.re_lme4)
 
 summary(m.re_lme4)
+plot_model(m.re_lme4, show.values = TRUE, value.offset = .5)
 ```
+
+## `m.re_lme4_1`
+
+Random intercept auf allen Faktorvariabeln! --> idee: Das könnte uns eine Quantifizierung 
+geben, inwiefern diese Variabeln tatsächlich relevant sind. Funktioniert nicht, da 
+das Modell nicht konvergiert. 
+
+Höchstwahrscheinlich sind das zu viele Random intercepts. 
+
+```{r}
+factor_vars <- names(df_mt)[sapply(df_mt, is.factor)]
+
+formula_lme4_1 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), " + ",
+                                   paste0("(1|",factor_vars,")", collapse = " + ")))
+formula_lme4_1
+
+# m.re_lme4_1 <- lmer(formula_lme4_1, data=df_mt)
+# models <- rlist::list.append(models, m.re_lme4_1 = m.re_lme4_1)
+# summary(m.re_lme4_1)
+# plot_model(m.re_lme4_1, show.values = TRUE, value.offset = .5)
+```
+
+## `m.re_lme4_2`
+
+Random slope on alter 
+
+```{r, fig.height=6}
+formula_lme4_2 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), 
+                                   "+ (alter|id)"))
+
+m.re_lme4_2 <- lmer(formula_lme4_2, data=df_mt)
+models <- rlist::list.append(models, m.re_lme4_2 = m.re_lme4_2)
+
+summary(m.re_lme4_2)
+plot_model(m.re_lme4_2, show.values = TRUE, value.offset = .5)
+```
+
+
+## `m.re_lme4_3`
+
+Random slope on arbeit_zufriedenheit_atmosphaere  
+
+```{r, fig.height=6}
+formula_lme4_3 <- as.formula(paste("depression ~", paste(base_vars, collapse = " + "), 
+                                   "+ (arbeit_zufriedenheit_atmosphaere|id)"))
+
+m.re_lme4_3 <- lmer(formula_lme4_3, data=df_mt)
+models <- rlist::list.append(models, m.re_lme4_3 = m.re_lme4_3)
+
+summary(m.re_lme4_3)
+plot_model(m.re_lme4_3, show.values = TRUE, value.offset = .5)
+```
+
+## `m.re_lme4_glmer`
+
+Random intercept on id & family poission().
+
+**does not converge** on normal data. (error message)
+**does not converge** on scaled data. (abort after 10h)
+
+See here for inputs on convergence issues: https://rstudio-pubs-static.s3.amazonaws.com/33653_57fc7b8e5d484c909b615d8633c01d51.html
+
+```{r, fig.height=6}
+base_formula_lme4
+
+
+# strictControl <- glmerControl(optCtrl = list(optimizer = "NLOPT_LN_NELDERMEAD",
+#                                              xtol_abs = 1e-12, ftol_abs = 1e-12))
+
+m.re_lme4_glmer <- glmer(base_formula_lme4, data=df_mt_normalized, family = poisson()) # control = strictControl
+models <- rlist::list.append(models, m.re_lme4_glmer = m.re_lme4_glmer)
+
+
+summary(m.re_lme4_glmer)
+plot_model(m.re_lme4_glmer, show.values = TRUE, value.offset = .5)
+```
+
 
 ## Summary
 
@@ -596,33 +856,26 @@ modelsummary(models, # models[c(1,2,3,4,5)]
              estimate = "{estimate}{stars}",
              statistic = "({std.error})", # "(Std: {std.error} / p: {p.value})",
              stars = FALSE) %>%
-  column_spec(c(5,6,7), background = '#CCFFFF') # color = 'red'
+  column_spec(c(5,6), background = '#E5FFCC') %>% 
+  column_spec(c(7,8,9), background = '#CCFFFF') 
 
 # see https://vincentarelbundock.github.io/modelsummary/articles/appearance.html
 # modelsummary(models, output = "table.docx")
 ```
 
-# FD-Modelle (First Differences) ?
 
-# Instrumental Variables?
-
-# Models mit depression vor 1 jahr?
 
 # Models with multiple membership?
-vgl. HSG-Kurs
+vgl. GSERM. vielleicht interessant, aber wir wollen noch andere Arten von Modellen 
+ausprobieren und etwas von der "linearen resp. multilevel Regression" weggkommen. 
 
-# brms-Modelle
 
-# Einfluss von Scaling?
+# jmcm 
 
-Kopiert von Adi (script-paper-I-stad-ramy.R -> Z.588)
+> Autoregressive Analyse pro Cluster (vgl. separates Dokument 2021_05_16_jmcm_playaround.R)
+
 
 ```{r}
-# ### Scale all Variables which are not categorical
-# df_clustered_not_scaled = df_clustered
-# df_clustered = df_clustered %>% mutate_at(c('taegl_pendeln_min',"arbeit_zeit_wochenstunden","hausarbeit_wochenstunden","tage_gesunheits_prob","person_haushalt","haushaltsaequivalenzeinkommen"), ~(scale(.) %>% as.vector))
-# ### Rerange all variables to 0-1
-# df_clustered = normalize(df_clustered, method = "range", range = c(0, 1))
-```
 
+```
 
