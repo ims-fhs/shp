@@ -1,0 +1,234 @@
+---
+title: "2021_05_16_jmcm_playaround"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+div.blue { 
+  background-color:#e6f0ff; 
+  border-radius: 5px; 
+  padding: 20px;
+}
+
+</style>
+```
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+# source("../00_functions.R")
+
+library(jmcm)
+library(lattice)
+
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r}
+df_mt <- imsbasics::load_rdata("df_mt.RData", "Scripts_Michi/")
+dt_mt_5 <- df_mt[df_mt$cluster == 5,]
+
+
+# helper function to suppress output messages from jmcm::bootcurve()
+# source: https://stackoverflow.com/questions/2723034/suppress-output-of-a-function
+hush <- function(code){
+  sink("NUL") # use /dev/null in UNIX
+  tmp <- code
+  sink()
+  return(tmp)
+}
+
+# n_try <- seq(1,2)
+n_try <- seq(1,5)
+
+n_boot <- 10
+# n_boot <- 50
+```
+
+
+
+
+
+<!-- # Tests for finding optimal autoregressive Structure {.tabset} -->
+
+<!-- > We use cov.method = `mcd` (modified Cholesky decomposition) to generate approximations  -->
+<!-- of autoregressive Coefficients (AR).  -->
+
+<!-- We take cluster 5 to save time and try different values for (p,d,q).  -->
+
+<!--  * p: Degree of polynom for mean-structure -->
+<!--  * d: Degree of polynom for log innovation - variances -->
+<!--  * q: Degree of polynom for **autoregressive** coefficients -->
+
+
+<!-- ## Different mean-structure (**p**) {.tabset} -->
+
+<!-- We set d = 5 & q = 5 (to have high variability) and let p vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- # We try different polynoms for the mean (the innovation & autoregressive Part are set to 5) -->
+
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(i, 5, 5), cov.method = 'mcd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+
+<!-- ``` -->
+
+<!-- ## Different log innovation-variances (**d**) {.tabset} -->
+
+<!-- We set p = 5 & q = 5 (to have high variability) and let d vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(5, i, 5), cov.method = 'mcd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ## Different autoregressive coefficients (**q**) {.tabset} -->
+
+<!-- We set p = 5 & d = 5 (to have high variability) and let q vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(5, 5, i), cov.method = 'mcd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+<!-- ``` -->
+
+
+
+
+<!-- # Tests for finding optimal moving Average Structure {.tabset} -->
+
+<!-- > We use cov.method = `acd` (alternative Cholesky decomposition) to generate approximations -->
+<!-- of moving average Coefficients (AR). -->
+
+<!-- We take cluster 5 to save time and try different values for (p,d,q). -->
+
+<!--  * p: Degree of polynom for mean-structure -->
+<!--  * d: Degree of polynom for log innovation - variances -->
+<!--  * q: Degree of polynom for **moving average** coefficients -->
+
+
+<!-- ## Different mean-structure (**p**) {.tabset} -->
+
+<!-- We set d = 5 & q = 5 (to have high variability) and let p vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- # We try different polynoms for the mean (the innovation & autoregressive Part are set to 5) -->
+
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(i, 5, 5), cov.method = 'acd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+
+<!-- ``` -->
+
+<!-- ## Different log innovation-variances (**d**) {.tabset} -->
+
+<!-- We set p = 5 & q = 5 (to have high variability) and let d vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(5, i, 5), cov.method = 'acd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ## Different autoregressive coefficients (**q**) {.tabset} -->
+
+<!-- We set p = 5 & d = 5 (to have high variability) and let q vary from 1-5. -->
+
+<!-- ```{r, results='asis', fig.height=7} -->
+<!-- for (i in n_try) { -->
+<!--   cat("\n\n### p =",i," \n\n") -->
+<!--   fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5, -->
+<!--                     triple = c(5, 5, i), cov.method = 'acd') -->
+<!--   cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n") -->
+<!--   cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n") -->
+<!--   hush(bootcurve(fit_df_mt, nboot = n_boot)) -->
+<!-- } -->
+<!-- ``` -->
+
+
+# Result 
+
+A Setting with p = 5, d = 5 and q = 5 seems reasonable, since they are quite equal, 
+and we have the compuational power, we conduct `jmcm`-fit for each of the 5 cluster 
+classes in the next chapter. 
+
+# jmcm per cluster (autoregressive)
+
+
+```{r, results='asis', fig.height=7}
+for (cluster in seq(1,5)) {
+  cat("\n\n### Cluster ",cluster," \n\n")
+  df_mt_subset <- df_mt[df_mt$cluster == cluster,]
+  fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = df_mt_subset,
+                    triple = c(5, 5, 5), cov.method = 'mcd')
+  cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n")
+  cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n")
+  hush(bootcurve(fit_df_mt, nboot = n_boot))
+}
+```
+
+
+# jmcm per cluster (moving average)
+
+```{r, results='asis', fig.height=7}
+for (cluster in seq(1,5)) {
+  cat("\n\n### Cluster ",cluster," \n\n")
+  df_mt_subset <- df_mt[df_mt$cluster == cluster,]
+  fit_df_mt <- jmcm(depression | id | year ~ 1 | 1, data = df_mt_subset,
+                    triple = c(5, 5, 5), cov.method = 'acd')
+  cat("\nLog-Likelyhood:     ", fit_df_mt@opt[["loglik"]], "\n")
+  cat("\nBIC:     ", fit_df_mt@opt[["BIC"]], "\n\n")
+  hush(bootcurve(fit_df_mt, nboot = n_boot))
+}
+```
