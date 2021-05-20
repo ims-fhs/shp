@@ -1,0 +1,214 @@
+---
+title: "2021_05_16_vrcpart_playaround"
+author: "Michael Schmid"
+date: "`r Sys.time()`"
+header-includes:
+   - \usepackage{cancel}
+output:
+  html_document: 
+    code_folding: hide
+    toc: yes
+    toc_float:
+      collapsed: no
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+div.blue { 
+  background-color:#e6f0ff; 
+  border-radius: 5px; 
+  padding: 20px;
+}
+
+</style>
+```
+
+```{r setup, include=FALSE}
+imsbasics::clc()
+# source("../00_functions.R")
+
+library(vcrpart)
+
+options(width = 110) # goes optimal with pre font-size in html-chunk above
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 7)
+# Set render-directory to project-directory (important for loading of data in this RMD) 
+# source: https://stackoverflow.com/questions/30237310/setting-work-directory-in-knitr-using-opts-chunksetroot-dir-doesnt-wor 
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+```
+
+```{r}
+df_mt <- imsbasics::load_rdata("df_mt.RData", "Scripts_Michi/")
+var_type <- attr(df_mt, "var_type")
+
+base_types <- c("lebenslage", "erwerbsarbeit", "carearbeit")
+base_vars <- var_type$variable[var_type$type %in% base_types]
+base_formula <- formula(paste("depression ~", paste(base_vars, collapse = " + ")))
+
+
+f1 <- depression ~ -1 + ausbildung + arbeit_zeit_ueberstunden
+f1_vc <- depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)
+cat("f1: ")
+print(f1)
+```
+
+
+# Datenvorbereitung 
+
+NA's müssen manuell herausgneommen werden - dies passiert bei anderen Modellen/packeten 
+implizit. Die Datnbasis wird ca um 50% verkleinert. (53'473 -> 24'053).
+
+
+```{r}
+df <- na.omit(df_mt[,var_type$variable])
+
+library(dplyr)
+df_weighted <- df %>% 
+  group_by(id) %>% 
+  mutate(weight = 1/n())
+
+# für schnelleres Testing verkleinern wir den Datensatz
+df <- df[1:5000, ]
+```
+
+# Einfluss von Gewichtung 
+
+Da diese glm-Modelle keine spezifische längsbetrachtung erlauben, tragen mehrere Messungen 
+einer Person weniger Information, als wenn die Person nur wenige Messungen besitzt. Aus 
+diesem Grund könnte versucht werden, eine Gewichtung einzuführen, die invers proportionali ist 
+zur Anzahl  Messungen pro Individuum. 
+
+> Es zeigt sich am folgenden Beispiel, dass eine solche Gewichtung keinen grossen Einfluss hat. 
+Die Interpretation der Modelle wird ebenfalls unnötig erschwert, weshalb in dieser Arbeit 
+davon abgesehen wird, die Werte zu gewichten. 
+
+### GLM-Modell ohne individuelle Gewichtung
+```{r}
+# m.glm1_unweighted
+m.glm1 <- glm(f1, family = gaussian(), data = df)
+summary(m.glm1)$coefficients
+```
+
+### GLM-Modell mit individueller Gewichtung
+
+```{r}
+# m.glm1
+m.glm1_weighted <- glm(f1, family = gaussian(), data = df_weighted, weights = df_weighted$weight)
+summary(m.glm1_weighted)$coefficients
+```
+
+
+# GLM - gaussian - Nur Intercepts {.tabset}
+
+```{r}
+# large tree (mindev = 0, cv = FALSE)
+m.glm1_large <- tvcglm(f1_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm1_small <- tvcglm(f1_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# # pruned tree (cross-validated)
+# m.glm1_pruned <- tvcglm(f1_vc, data = df, family = gaussian(),
+#                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                          mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+
+```
+
+
+$$\text{depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)}$$
+
+## Maximaler Baum (mindev = 0)
+
+```{r}
+plot(m.glm1_large, "coef")
+summary(m.glm1_large)
+```
+
+
+## Kleiner Baum (mindev = 20)
+
+
+```{r}
+plot(m.glm1_small, "coef")
+summary(m.glm1_small)
+```
+
+
+## Baum mit 5-fold-cross-validation & pruning
+
+```{r}
+# plot(m.glm1_pruned, "coef")
+# summary(m.glm1_pruned)
+```
+
+
+
+
+
+
+# GLM - poisson - Nur Intercepts {.tabset}
+
+```{r}
+# large tree (mindev = 0, cv = FALSE)
+m.glm1_large <- tvcglm(f1_vc, data = df, family = poisson(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm1_small <- tvcglm(f1_vc, data = df, family = poisson(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# # pruned tree (cross-validated)
+# m.glm1_pruned <- tvcglm(f1_vc, data = df, family = poisson(),
+#                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                          mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+
+```
+
+
+$$\text{depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)}$$
+
+## Maximaler Baum (mindev = 0)
+
+```{r}
+plot(m.glm1_large, "coef")
+summary(m.glm1_large)
+```
+
+
+## Kleiner Baum (mindev = 20)
+
+
+```{r}
+plot(m.glm1_small, "coef")
+summary(m.glm1_small)
+```
+
+
+## Baum mit 5-fold-cross-validation & pruning
+
+```{r}
+# plot(m.glm1_pruned, "coef")
+# summary(m.glm1_pruned)
+```
+
+
+
+

@@ -872,10 +872,14 @@ ausprobieren und etwas von der "linearen resp. multilevel Regression" weggkommen
 
 # jmcm 
 
-> Autoregressive Analyse pro Cluster (vgl. separates Dokument 2021_05_16_jmcm_playaround.R)
+> Autoregressive Analyse pro Cluster (vgl. separates Dokument 2021_05_16_jmcm_playaround.Rmd)
 
 
 ```{r}
 
 ```
 
+# vcrpart
+
+> varying coefficinet models based on glmer & mixed models 
+(vgl. separates Dokument 2021_05_16_vcrpart_playaound.R)
