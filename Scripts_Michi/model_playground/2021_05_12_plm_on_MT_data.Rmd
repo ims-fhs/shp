@@ -166,58 +166,58 @@ Interessante Variabeln:
 
 
 ```{r, results='asis', fig.width=10, warning=FALSE}
-# # see https://r.789695.n4.nabble.com/error-using-pvcm-on-unbalanced-panel-data-td1569157.html
-# pvcm_vars <- base_vars[!base_vars %in% "ausbildung"]
-# 
-# for (i in pvcm_vars) {
-# # for (i in c("alter", "partnerschaft")) {
-#   cat("\n\n###",i,"\n\n")
-# 
-#   if (class(df_mt %>% pull(i)) == "numeric") {
-#     n_obs_needed <- 3
-#     my_x_lab <- paste0("Individueller linearer Zusammenhang zwischen `",i,"` und `depression`")
-#   } else if (class(df_mt %>% pull(i)) == "factor") {
-#     assertthat::assert_that(length(levels(df_mt %>% pull(i))) == 2)
-#     lev1 <- levels(df_mt %>% pull(i))[1]
-#     lev2 <- levels(df_mt %>% pull(i))[2]
-#     my_x_lab <- paste0("Individueller Offset von `",lev2,"` im Vergleich zu `", lev1,"` bezgl. `depression`")
-#     n_obs_needed <- 4
-#   }
-# 
-#   df <- df_mt %>%
-#     filter(!is.na(depression)) %>% # abhängige Variable sollte nicht NA sein
-#     filter(!is.na(get(i))) %>% # unabhängige Variable sollte nicht NA sein
-#     group_by(id) %>%
-#     filter(n() >= n_obs_needed) # unabhängige variable sollte mind. n_obs_needed mal vorkommen
-# 
-#   # Variable Coefficient model
-#   m.pvcm <- pvcm(depression ~ get(i), df, model = "within")
-#   
-#   # pooltest: comparison to Pooling model 
-#   m.pool_plm_compare <- plm(depression ~ get(i), df, model = "pooling")
-#   cat("\nPooltest for pooling-model")
-#   print(pooltest(m.pool_plm_compare, m.pvcm))
-#   # pooltest: comparison to FE model
-#   cat("\nPooltest for fixed-effect-model")
-#   m.fe_plm_compare <- plm(depression ~ get(i), df, model = "within")
-#   print(pooltest(m.fe_plm_compare, m.pvcm))
-#   
-#   
-#   
-#   # baseline in factor-regression is always the first level
-#   my_coefs <- coef(m.pvcm)[,2]
-# 
-#   h <- hist(my_coefs,
-#        breaks = seq(floor(min(my_coefs, na.rm = T))-0.5,ceiling(max(my_coefs, na.rm = T)) + 0.5,0.5),
-#        main = paste0("Variable ", i, " (",class(df_mt %>% pull(i)),")"),
-#        xlab = my_x_lab,  ylab = "Anzahl Personen")
-#   abline(v = mean(my_coefs, na.rm = T), col = "red", lwd = 2)
-#   text(x = mean(my_coefs, na.rm = T), y = max(h$counts), pos = 4, col = "red",
-#        labels = paste("Mittelwert: ", round(mean(my_coefs, na.rm = T),2)))
-# }
-# 
-# # Fehlermeldung für gesamtes Modell: --> # Fehler in FUN(X[[i]], ...) : insufficient number of observations
-# # m.pvcm <- pvcm(base_formula, df_mt, model="within")
+# see https://r.789695.n4.nabble.com/error-using-pvcm-on-unbalanced-panel-data-td1569157.html
+pvcm_vars <- base_vars[!base_vars %in% "ausbildung"]
+
+for (i in pvcm_vars) {
+# for (i in c("alter", "partnerschaft")) {
+  cat("\n\n###",i,"\n\n")
+
+  if (class(df_mt %>% pull(i)) == "numeric") {
+    n_obs_needed <- 3
+    my_x_lab <- paste0("Individueller linearer Zusammenhang zwischen `",i,"` und `depression`")
+  } else if (class(df_mt %>% pull(i)) == "factor") {
+    assertthat::assert_that(length(levels(df_mt %>% pull(i))) == 2)
+    lev1 <- levels(df_mt %>% pull(i))[1]
+    lev2 <- levels(df_mt %>% pull(i))[2]
+    my_x_lab <- paste0("Individueller Offset von `",lev2,"` im Vergleich zu `", lev1,"` bezgl. `depression`")
+    n_obs_needed <- 4
+  }
+
+  df <- df_mt %>%
+    filter(!is.na(depression)) %>% # abhängige Variable sollte nicht NA sein
+    filter(!is.na(get(i))) %>% # unabhängige Variable sollte nicht NA sein
+    group_by(id) %>%
+    filter(n() >= n_obs_needed) # unabhängige variable sollte mind. n_obs_needed mal vorkommen
+
+  # Variable Coefficient model
+  m.pvcm <- pvcm(depression ~ get(i), df, model = "within")
+
+  # pooltest: comparison to Pooling model
+  m.pool_plm_compare <- plm(depression ~ get(i), df, model = "pooling")
+  cat("\nPooltest for pooling-model")
+  print(pooltest(m.pool_plm_compare, m.pvcm))
+  # pooltest: comparison to FE model
+  cat("\nPooltest for fixed-effect-model")
+  m.fe_plm_compare <- plm(depression ~ get(i), df, model = "within")
+  print(pooltest(m.fe_plm_compare, m.pvcm))
+
+
+
+  # baseline in factor-regression is always the first level
+  my_coefs <- coef(m.pvcm)[,2]
+
+  h <- hist(my_coefs,
+       breaks = seq(floor(min(my_coefs, na.rm = T))-0.5,ceiling(max(my_coefs, na.rm = T)) + 0.5,0.5),
+       main = paste0("Variable ", i, " (",class(df_mt %>% pull(i)),")"),
+       xlab = my_x_lab,  ylab = "Anzahl Personen")
+  abline(v = mean(my_coefs, na.rm = T), col = "red", lwd = 2)
+  text(x = mean(my_coefs, na.rm = T), y = max(h$counts), pos = 4, col = "red",
+       labels = paste("Mittelwert: ", round(mean(my_coefs, na.rm = T),2)))
+}
+
+# Fehlermeldung für gesamtes Modell: --> # Fehler in FUN(X[[i]], ...) : insufficient number of observations
+# m.pvcm <- pvcm(base_formula, df_mt, model="within")
 ```
 
 
@@ -834,18 +834,18 @@ Random intercept on id & family poission().
 See here for inputs on convergence issues: https://rstudio-pubs-static.s3.amazonaws.com/33653_57fc7b8e5d484c909b615d8633c01d51.html
 
 ```{r, fig.height=6}
-base_formula_lme4
+# base_formula_lme4
 
 
 # strictControl <- glmerControl(optCtrl = list(optimizer = "NLOPT_LN_NELDERMEAD",
 #                                              xtol_abs = 1e-12, ftol_abs = 1e-12))
 
-m.re_lme4_glmer <- glmer(base_formula_lme4, data=df_mt_normalized, family = poisson()) # control = strictControl
-models <- rlist::list.append(models, m.re_lme4_glmer = m.re_lme4_glmer)
-
-
-summary(m.re_lme4_glmer)
-plot_model(m.re_lme4_glmer, show.values = TRUE, value.offset = .5)
+# m.re_lme4_glmer <- glmer(base_formula_lme4, data=df_mt_normalized, family = poisson()) # control = strictControl
+# models <- rlist::list.append(models, m.re_lme4_glmer = m.re_lme4_glmer)
+# 
+# 
+# summary(m.re_lme4_glmer)
+# plot_model(m.re_lme4_glmer, show.values = TRUE, value.offset = .5)
 ```
 
 

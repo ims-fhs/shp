@@ -122,10 +122,10 @@ m.glm1_small <- tvcglm(f1_vc, data = df, family = gaussian(),
                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
                                          mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
 
-# # pruned tree (cross-validated)
-# m.glm1_pruned <- tvcglm(f1_vc, data = df, family = gaussian(),
-#                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-#                                          mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+# pruned tree (cross-validated)
+m.glm1_pruned <- tvcglm(f1_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
 
 ```
 
@@ -152,8 +152,8 @@ summary(m.glm1_small)
 ## Baum mit 5-fold-cross-validation & pruning
 
 ```{r}
-# plot(m.glm1_pruned, "coef")
-# summary(m.glm1_pruned)
+plot(m.glm1_pruned, "coef")
+summary(m.glm1_pruned)
 ```
 
 
@@ -175,10 +175,10 @@ m.glm1_small <- tvcglm(f1_vc, data = df, family = poisson(),
                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
                                          mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
 
-# # pruned tree (cross-validated)
-# m.glm1_pruned <- tvcglm(f1_vc, data = df, family = poisson(),
-#                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-#                                          mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+# pruned tree (cross-validated)
+m.glm1_pruned <- tvcglm(f1_vc, data = df, family = poisson(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
 
 ```
 
@@ -205,8 +205,8 @@ summary(m.glm1_small)
 ## Baum mit 5-fold-cross-validation & pruning
 
 ```{r}
-# plot(m.glm1_pruned, "coef")
-# summary(m.glm1_pruned)
+plot(m.glm1_pruned, "coef")
+summary(m.glm1_pruned)
 ```
 
 
