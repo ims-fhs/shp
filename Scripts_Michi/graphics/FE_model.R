@@ -1,4 +1,4 @@
-# plot a pooled model with plotly
+# plot a FE model with plotly
 
 imsbasics::clc()
 library(dplyr)
@@ -63,7 +63,7 @@ p1 <- plot_ly() %>%
             color = I(df$col),
             line = list(width = 4),
             marker = list(size = 4)) %>%
-  layout(title = "Pooled Model - n-1 Hyperebene im n-Dimensionalen Raum",
+  layout(title = "FE Modell: (n-1)-dim Hyperebene im n-dim Raum",
          scene = list(xaxis = list(title = "z_i", titlefont = list(size = 25), tickfont = list(size = 15)),
                       yaxis = list(title = "x_it", titlefont = list(size = 25), tickfont = list(size = 15)),
                       zaxis = list(title = "y_it", titlefont = list(size = 25), tickfont = list(size = 15)),

@@ -1,4 +1,4 @@
-# plot a pooled model with plotly
+# plot a RE model with plotly
 
 imsbasics::clc()
 library(dplyr)
@@ -23,17 +23,20 @@ for (i in x_range) {
   rm(my_df)
 }
 
-
 # create the pooled model based on the data
-df$dummy_x <- df$x; df$dummy_y <- df$y # create dummy x & y (copy of x & y) for plm -> x&y = index / dummies = independent variables
-plm_pooled <- plm(z ~ dummy_x + dummy_y, data = df[!is.na(df$x),], model = "pooling", effect = "individual")
-coefs <- coef(plm_pooled)
-print(coefs)
+df$dummy_x <- df$x; df$dummy_y <- df$y # create dummy x & y (copy of x & y) for plm
+                                       # -> x&y = index / dummies = independent variables
+plm_re <- plm(z ~ dummy_x + dummy_y, data = df[!is.na(df$x),], model = "random", effect = "individual")
 
-
+plm_resids <- residuals(plm_re)
+my_resids <- rep(NA, nrow(df))
+my_resids[as.numeric(names(plm_resids))] <- plm_resids
+df$z_modeled <- df$z - my_resids
 
 # create data for surface
-z <- matrix(predict(plm_pooled), ncol = length(x_range))
+z <- matrix(df$z_modeled[!is.na(df$z_modeled)], ncol = length(x_range))
+# z_mean <- (df %>% group_by(x) %>% summarise(mean_z = mean(z, na.rm = TRUE)))$mean_z[1:length(x_range)]
+# z <- z + rep(z_mean, each = length(y_range))
 
 # add surface data to df (for plotting lines)
 z_modeled <- numeric()
@@ -42,9 +45,6 @@ for (i in 1:ncol(z)) {
 }
 z_modeled <- c(z_modeled, NA)
 df$z_modeled <- z_modeled
-
-
-
 
 p1 <- plot_ly() %>%
   add_surface(x = ~x_range,
@@ -65,7 +65,7 @@ p1 <- plot_ly() %>%
             color = I(df$col),
             line = list(width = 4),
             marker = list(size = 4)) %>%
-  layout(title = "Gepooltes Modell: (n-1)-dim Hyperebene im n-dim Raum",
+  layout(title = "RE Modell: (n-1)-dim Hyperebene im n-dim Raum",
          scene = list(xaxis = list(title = "z_i", titlefont = list(size = 25), tickfont = list(size = 15)),
                       yaxis = list(title = "x_it", titlefont = list(size = 25), tickfont = list(size = 15)),
                       zaxis = list(title = "y_it", titlefont = list(size = 25), tickfont = list(size = 15)),
@@ -77,4 +77,11 @@ p1 <- plot_ly() %>%
          )
   )
 
+
+
+
 print(p1)
+
+
+
+
