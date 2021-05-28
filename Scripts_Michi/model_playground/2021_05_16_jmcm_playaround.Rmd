@@ -65,8 +65,8 @@ hush <- function(code){
 # n_try <- seq(1,2)
 n_try <- seq(1,5)
 
-n_boot <- 10
-# n_boot <- 50
+# n_boot <- 10
+n_boot <- 50
 ```
 
 

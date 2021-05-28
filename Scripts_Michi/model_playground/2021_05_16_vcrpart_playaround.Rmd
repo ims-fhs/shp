@@ -78,19 +78,19 @@ df_weighted <- df %>%
   mutate(weight = 1/n())
 
 # für schnelleres Testing verkleinern wir den Datensatz
-df <- df[1:5000, ]
+# df <- df[1:5000, ]
 ```
 
-# Einfluss von Gewichtung 
+# Einfluss von Gewichtung
 
-Da diese glm-Modelle keine spezifische längsbetrachtung erlauben, tragen mehrere Messungen 
-einer Person weniger Information, als wenn die Person nur wenige Messungen besitzt. Aus 
-diesem Grund könnte versucht werden, eine Gewichtung einzuführen, die invers proportionali ist 
-zur Anzahl  Messungen pro Individuum. 
+Da diese glm-Modelle keine spezifische längsbetrachtung erlauben, tragen mehrere Messungen
+einer Person weniger Information, als wenn die Person nur wenige Messungen besitzt. Aus
+diesem Grund könnte versucht werden, eine Gewichtung einzuführen, die invers proportionali ist
+zur Anzahl  Messungen pro Individuum.
 
-> Es zeigt sich am folgenden Beispiel, dass eine solche Gewichtung keinen grossen Einfluss hat. 
-Die Interpretation der Modelle wird ebenfalls unnötig erschwert, weshalb in dieser Arbeit 
-davon abgesehen wird, die Werte zu gewichten. 
+> Es zeigt sich am folgenden Beispiel, dass eine solche Gewichtung keinen grossen Einfluss hat.
+Die Interpretation der Modelle wird ebenfalls unnötig erschwert, weshalb in dieser Arbeit
+davon abgesehen wird, die Werte zu gewichten.
 
 ### GLM-Modell ohne individuelle Gewichtung
 ```{r}
@@ -115,7 +115,7 @@ summary(m.glm1_weighted)$coefficients
 m.glm1_large <- tvcglm(f1_vc, data = df, family = gaussian(),
                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
                                          mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-                                                     # --> gives us the largest possible tree.
+                                                     # -> gives us the largest possible tree.
 
 # Medium tree
 m.glm1_small <- tvcglm(f1_vc, data = df, family = gaussian(),
@@ -133,24 +133,18 @@ m.glm1_pruned <- tvcglm(f1_vc, data = df, family = gaussian(),
 $$\text{depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)}$$
 
 ## Maximaler Baum (mindev = 0)
-
 ```{r}
 plot(m.glm1_large, "coef")
 summary(m.glm1_large)
 ```
 
-
 ## Kleiner Baum (mindev = 20)
-
-
 ```{r}
 plot(m.glm1_small, "coef")
 summary(m.glm1_small)
 ```
 
-
 ## Baum mit 5-fold-cross-validation & pruning
-
 ```{r}
 plot(m.glm1_pruned, "coef")
 summary(m.glm1_pruned)
@@ -168,7 +162,7 @@ summary(m.glm1_pruned)
 m.glm1_large <- tvcglm(f1_vc, data = df, family = poisson(),
                 control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
                                          mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-                                                     # --> gives us the largest possible tree.
+                                                     # -> gives us the largest possible tree.
 
 # Medium tree
 m.glm1_small <- tvcglm(f1_vc, data = df, family = poisson(),
@@ -186,24 +180,18 @@ m.glm1_pruned <- tvcglm(f1_vc, data = df, family = poisson(),
 $$\text{depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)}$$
 
 ## Maximaler Baum (mindev = 0)
-
 ```{r}
 plot(m.glm1_large, "coef")
 summary(m.glm1_large)
 ```
 
-
 ## Kleiner Baum (mindev = 20)
-
-
 ```{r}
 plot(m.glm1_small, "coef")
 summary(m.glm1_small)
 ```
 
-
 ## Baum mit 5-fold-cross-validation & pruning
-
 ```{r}
 plot(m.glm1_pruned, "coef")
 summary(m.glm1_pruned)
@@ -212,3 +200,219 @@ summary(m.glm1_pruned)
 
 
 
+# GLM - gaussian - fe + intercept + slope {.tabset}
+
+```{r}
+f2_vc <- depression ~ -1 + year +
+  vc(ausbildung, arbeit_zeit_ueberstunden) +
+  vc(ausbildung, arbeit_zeit_ueberstunden, by = arbeit_zeit_ueberstunden)
+cat("f2: ")
+print(f2_vc)
+
+# large tree (mindev = 0, cv = FALSE)
+m.glm2_large <- tvcglm(f2_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 1, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm2_small <- tvcglm(f2_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# pruned tree (cross-validated)
+m.glm2_pruned <- tvcglm(f2_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+
+```
+
+
+## Maximaler Baum (mindev = 0)
+```{r}
+plot(m.glm2_large, "coef")
+summary(m.glm2_large)
+```
+
+## Kleiner Baum (mindev = 20)
+```{r}
+plot(m.glm2_small, "coef")
+summary(m.glm2_small)
+```
+
+## Baum mit 5-fold-cross-validation & pruning
+```{r}
+plot(m.glm2_pruned, "coef")
+summary(m.glm2_pruned)
+```
+
+
+# GLM - gaussien - base_model
+
+Als Referenz: nur GLM-Modell.
+
+```{r}
+m.glm_ref <- glm(base_formula, data = df, family = gaussian())
+summary(m.glm_ref)
+```
+
+
+
+
+# GLM - gaussian - base_model + VC(ausbildung) {.tabset}
+
+We use one moderator
+
+ * Random intercept on "aubildung"
+ * Random slope on "arbeit_zeit_wochenstunden " with moderator "ausbildung"
+
+```{r}
+f3_vc <- update(base_formula,  ~ . + vc(ausbildung) + vc(ausbildung, by = arbeit_zeit_wochenstunden))
+cat("f3: ")
+print(f3_vc)
+
+
+
+# large tree (mindev = 0, cv = FALSE)
+m.glm3_large <- tvcglm(f3_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm3_small <- tvcglm(f3_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# pruned tree (cross-validated)
+m.glm3_pruned <- tvcglm(f3_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+
+```
+
+
+## Maximaler Baum (mindev = 0)
+```{r}
+plot(m.glm3_large, "coef")
+summary(m.glm3_large)
+# coefficients(m.glm3_large)
+```
+
+## Kleiner Baum (mindev = 20)
+```{r}
+plot(m.glm3_small, "coef")
+summary(m.glm3_small)
+```
+
+## Baum mit 5-fold-cross-validation & pruning
+```{r}
+plot(m.glm3_pruned, "coef")
+summary(m.glm3_pruned)
+```
+
+
+
+
+# GLM - gaussian - base_model + VC(hausarbeit_wochenstunden) {.tabset}
+
+We use one moderator
+
+ * Random intercept on "hausarbeit_wochenstunden"
+ * Random slope on "arbeit_zeit_wochenstunden " with moderator "hausarbeit_wochenstunden"
+
+```{r}
+f4_vc <- update(base_formula,  ~ . + vc(hausarbeit_wochenstunden) +
+                  vc(hausarbeit_wochenstunden, by = arbeit_zeit_wochenstunden))
+cat("f4: ")
+print(f4_vc)
+
+
+
+# large tree (mindev = 0, cv = FALSE)
+m.glm4_large <- tvcglm(f4_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 0.5, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm4_small <- tvcglm(f4_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# pruned tree (cross-validated)
+m.glm4_pruned <- tvcglm(f4_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+
+```
+
+
+## Maximaler Baum (mindev = 0)
+```{r}
+plot(m.glm4_large, "coef")
+summary(m.glm4_large)
+# coefficients(m.glm4_large)
+```
+
+## Kleiner Baum (mindev = 20)
+```{r}
+plot(m.glm4_small, "coef")
+summary(m.glm4_small)
+```
+
+## Baum mit 5-fold-cross-validation & pruning
+```{r}
+plot(m.glm4_pruned, "coef")
+summary(m.glm4_pruned)
+```
+
+
+
+# GLM - gaussian - base_model + VC(partnerschaft) + vc(usbildung, partnerschaft, by = arbeit_zeit_wochenstunden) {.tabset}
+
+
+```{r}
+# complete model with 1 varying intercept & 1 varying slope for moderators "ausbildung" & hausarbeit wochenstunden"
+f5_vc <- update(base_formula,  ~ . + vc(partnerschaft) +
+                  vc(ausbildung, partnerschaft, by = arbeit_zeit_wochenstunden))
+cat("f5: ")
+print(f5_vc)
+
+
+
+# large tree (mindev = 0, cv = FALSE)
+m.glm5_large <- tvcglm(f5_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+                                                     # --> gives us the largest possible tree.
+
+# Medium tree
+m.glm5_small <- tvcglm(f5_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 10, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+
+# pruned tree (cross-validated)
+m.glm5_pruned <- tvcglm(f5_vc, data = df, family = gaussian(),
+                control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                         mindev = 20, cv = TRUE)) # D_min = 0 minimal log-likelihood reduction
+```
+
+## Maximaler Baum (mindev = 0)
+```{r}
+plot(m.glm5_large, "coef")
+summary(m.glm5_large)
+# coefficients(m.glm5_large)
+```
+
+## Kleiner Baum (mindev = 20)
+```{r}
+plot(m.glm5_small, "coef")
+summary(m.glm5_small)
+```
+
+## Baum mit 5-fold-cross-validation & pruning
+```{r}
+plot(m.glm5_pruned, "coef")
+summary(m.glm5_pruned)
+```

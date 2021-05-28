@@ -3,7 +3,8 @@
 imsbasics::clc()
 library(dplyr)
 library(plotly)
-
+library(plm)
+library(sjPlot)
 
 
 # ------------------ Import ----------------------------------------------------
@@ -144,8 +145,6 @@ corrplot::corrplot(dep_correaltion, method = "number", cl.pos = "r",
 
 
 # ------------------------------- 5. Pooled model ------------------------------
-library(plm)
-library(sjPlot)
 
 m.pool_plm <- plm(base_formula, df_mt, index = c("id","year"), model="pooling")
 summary(m.pool_plm)
@@ -153,7 +152,7 @@ plot_model(m.pool_plm, show.values = TRUE, value.offset = 0.4,
            value.size = 4, axis.lim = c(-1,1),
            title = "Effekte im gepoolten Modell",
            axis.title = "Effektschätzung_inkl_95%-Konfidenzintervall", ci.lvl = 0.95)
-models <- rlist::list.append(models, m.pool_plm = m.pool_plm)
+models <- rlist::list.append(models, Pooled = m.pool_plm)
 
 
 
@@ -173,7 +172,7 @@ models <- rlist::list.append(models, m.pool_plm = m.pool_plm)
 
 # ------------------------------7. FD Model ------------------------------------
 m.fd_plm <- plm(base_formula, df_mt, index = c("id","year"), model="fd")
-models <- rlist::list.append(models, m.fd_plm = m.fd_plm)
+models <- rlist::list.append(models, FD = m.fd_plm)
 summary(m.fd_plm)
 plot_model(m.fd_plm, show.values = TRUE, value.offset = 0.4,
            value.size = 4, axis.lim = c(-5,3),
@@ -184,7 +183,7 @@ plot_model(m.fd_plm, show.values = TRUE, value.offset = 0.4,
 
 # -------------------------------- 8. FE Model ---------------------------------
 m.fe_plm <- plm(base_formula, df_mt, index = c("id","year"), model="within")
-models <- rlist::list.append(models, m.fe_plm = m.fe_plm)
+models <- rlist::list.append(models, FE = m.fe_plm)
 summary(m.fe_plm)
 plot_model(m.fe_plm, show.values = TRUE, value.offset = 0.4,
            value.size = 4, axis.lim = c(-2,2),
@@ -206,14 +205,203 @@ legend(17500, 8, legend = c("Rohdaten", "Vorhersage FE-Modell"), col = c("black"
 
 
 # -------------------------------- 9. RE Model ---------------------------------
-m.re_plm <- plm(base_formula, df_mt, index = c("id","year"), model="random")
-models <- rlist::list.append(models, m.re_plm = m.re_plm)
-summary(m.re_plm)
-plot_model(m.re_plm, show.values = TRUE, value.offset = .5)
+set.seed(2)
+x_re <- seq(4,19); n_re <- length(x_re)
+sd_small <- 0.2; sd_big <- 2
 
-# fitted_data_re <- fitted(m.re_plm)
+re_small_eit <- data.frame(x = x_re,
+                           y1 = 2 + rnorm(n_re, sd = sd_small),
+                           y2 = 5 + rnorm(n_re, sd = sd_small),
+                           y3 = 8 + rnorm(n_re, sd = sd_small))
+re_big_eit <- data.frame(x = x_re,
+                           y1 = 2 + runif(n_re, min = -2, max = 5),
+                           y2 = 4 + runif(n_re, min = -4, max = 6),
+                           y3 = 6 + runif(n_re, min = -6, max = 4))
+
+
+par(mfrow = c(1,2))
+plot(re_small_eit$x, re_small_eit$y1, ylim = c(0,10), type = "l",
+     main = latex2exp::TeX("$var(e_{it})$ klein, $var(u_i)$ gross $\\Rightarrow$
+                           $\\lambda_i \\rightarrow$ 1"),
+     xlab = "Zeit", ylab = "depression", lwd = 2)
+lines(re_small_eit$x, re_small_eit$y2, col = "blue", lwd = 2)
+lines(re_small_eit$x, re_small_eit$y3, col = "darkorange", lwd = 2)
+abline(h = mean(re_small_eit$y1))
+abline(h = mean(re_small_eit$y2), col = "blue")
+abline(h = mean(re_small_eit$y3), col = "darkorange")
+
+plot(re_big_eit$x, re_big_eit$y1, ylim = c(0,10), type = "l",
+     main = latex2exp::TeX("$var(e_{it})$ gross, $var(u_i)$ klein $\\Rightarrow$
+                           $\\lambda_i \\rightarrow$ 0"),
+     xlab = "Zeit", ylab = "depression", lwd = 2)
+lines(re_big_eit$x, re_big_eit$y2, col = "blue", lwd = 2)
+lines(re_big_eit$x, re_big_eit$y3, col = "darkorange", lwd = 2)
+abline(h = mean(re_big_eit$y1))
+abline(h = mean(re_big_eit$y2), col = "blue")
+abline(h = mean(re_big_eit$y3), col = "darkorange")
+
+
+
+
+m.re_plm <- plm(base_formula, df_mt, index = c("id","year"), model="random")
+models <- rlist::list.append(models, RE = m.re_plm)
+summary(m.re_plm)
+plot_model(m.re_plm, show.values = TRUE, value.offset = 0.4,
+           value.size = 4, axis.lim = c(-1,1),
+           title = "Effekte im RE-Modell",
+           axis.title = "Effektschätzung_inkl_95%-Konfidenzintervall", ci.lvl = 0.95)
+
+# fitted_data_re <- fitted(m.re_plm, effect = "time")
 # plot(demeaned_data, cex = 0.3, main = "Abweichung für 'depression' vom einheitenspezifischen Mittelwert",
 #      xaxt = "n", xlab = "Beobachtung", ylab = "Abweichung")
 # points(as.numeric(fitted_data_re), col = alpha("red",0.5), cex = 0.2)
 # legend(17500, 8, legend = c("Rohdaten", "Vorhersage FE-Modell"), col = c("black", "red"),
 #        pch = 20, pt.cex = 2)
+
+
+
+# --------------- 10. RE-KV Model ----------------------------------------------
+
+# group-mean centering for all variables exept "id" and "year"
+vars_mc <- colnames(df %>% select_if(is.numeric))
+vars_mc <- vars_numeric[! vars_numeric %in% c("id", "year", "depression", "cluster", "person_haushalt")]
+vars_mc_formula <- c()
+for (i in vars_mc) {
+  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, "_dev"))
+}
+# Mean centered dataset!
+df_mt_mc <- rockchalk::gmc(df_mt, vars_mc, by = "id")
+
+# create formula for group-meaned model.
+vars_not_mc <- base_vars[!base_vars %in% vars_mc]
+assertthat::assert_that(length(vars_mc) + length(vars_not_mc) == length(base_vars))
+
+
+formula_mc <- formula(paste("depression ~",
+                            paste(vars_not_mc, collapse = " + "), " + ",
+                            paste(vars_mc_formula, collapse = " + ")))
+print("Mean centered formula for mean-centered data:")
+print(formula_mc)
+
+
+m.re_kv_plm <- plm(formula_mc, df_mt_mc, index = c("id","year"), model="random")
+models <- rlist::list.append(models, RE_KV = m.re_kv_plm)
+summary(m.re_kv_plm)
+plot_model(m.re_kv_plm, show.values = TRUE, value.offset = 0.4,
+           value.size = 4, axis.lim = c(-1,1),
+           title = "Effekte im RE-KV-Modell",
+           axis.title = "Effektschätzung_inkl_95%-Konfidenzintervall", ci.lvl = 0.95)
+
+# Hausmann-Test for demeaned-data
+phtest(formula_mc, data = df_mt_mc)
+
+
+
+# -------------- 11. Instrumental Variables -----------------------------------
+instr_vars <- c(1,2,3,4,6,10,11,13,16,17,18)
+instrumental_formula2 <- formula(paste("depression ~",
+                                       paste(base_vars[-instr_vars], collapse = " + "),  " | ",
+                                       paste(base_vars[instr_vars], collapse = " + ")))
+
+print(instrumental_formula2)
+
+
+m.fe_plm_inst2 <- plm(instrumental_formula2, df_mt, index = c("id","year"), model="within")
+models <- rlist::list.append(models, Instrumental = m.fe_plm_inst2)
+summary(m.fe_plm_inst2)
+plot_model(m.fe_plm_inst2, show.values = TRUE, value.offset = 0.4,
+           value.size = 4, axis.lim = c(-1,1),
+           title = "Effekte basierend auf instrumentellen Varaiblen",
+           axis.title = "Effektschätzung_inkl_95%-Konfidenzintervall", ci.lvl = 0.95)
+
+
+
+# ---------------- 12. jmcm  - see RMD & HTML ----------------------------------
+# @MICHI: Grafiken direkt aus HTML kopiert!
+#
+#
+# library(ggplot2)
+# ggplot(df_mt, aes(x = year, y = depression, group = id)) + geom_line()
+#
+#
+# library(jmcm)
+# dt_mt_5 <- df_mt[df_mt$cluster == 5,]
+#
+# # MCD --> AR-coefficients
+# m.jmcm_mcd <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5,
+#                    triple = c(5, 5, 5), cov.method = 'mcd')
+# bootcurve(m.jmcm_mcd, nboot = 10)
+#
+# # ACD --> MA-Coefficients
+# m.jmcm_acd <- jmcm(depression | id | year ~ 1 | 1, data = dt_mt_5,
+#                    triple = c(5, 5, 5), cov.method = 'acd')
+
+
+
+# ------------- 13. vcrpart ----------------------------------------------------
+library(vcrpart)
+df_without_na <- na.omit(df_mt[,var_type$variable])
+
+
+# Gaussian - Only two varying Intercepts
+f1_vc <- depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)
+print(f1_vc)
+m.glm1_small <- tvcglm(f1_vc, data = df_without_na, family = gaussian(),
+                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                                mindev = 30, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+plot(m.glm1_small, "coef")
+summary(m.glm1_small)
+
+
+# glm on base formula
+m.glm_ref <- glm(base_formula, data = df_without_na, family = gaussian())
+summary(m.glm_ref)
+models <- rlist::list.append(models, GLM_ref = m.glm_ref)
+
+
+# complete model with 1 varying intercept & 1 varying slope for moderator "ausbildung"
+f3_vc <- update(base_formula,  ~ . + vc(ausbildung) + vc(ausbildung, by = arbeit_zeit_wochenstunden))
+cat("f3: "); print(f3_vc)
+m.glm3_large <- tvcglm(f3_vc, data = df_without_na, family = gaussian(),
+                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                                mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+plot(m.glm3_large, "coef", part = "A")
+plot(m.glm3_large, "coef", part = "B")
+summary(m.glm3_large)
+
+# complete model with 1 varying intercept & 1 varying slope for moderator "hausarbeit wochenstunden"
+f4_vc <- update(base_formula,  ~ . + vc(hausarbeit_wochenstunden) +
+                  vc(hausarbeit_wochenstunden, by = arbeit_zeit_wochenstunden))
+cat("f4: "); print(f4_vc)
+m.glm4_large <- tvcglm(f4_vc, data = df_without_na, family = gaussian(),
+                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                                mindev = 0.5, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+plot(m.glm4_large, "coef", part = "A")
+plot(m.glm4_large, "coef", part = "B", gp = gpar(fontsize=8), tnex = 3)
+summary(m.glm4_large)
+
+
+# complete model with 1 varying intercept & 1 varying slope for moderators "ausbildung" & hausarbeit wochenstunden"
+f5_vc <- update(base_formula,  ~ . + vc(partnerschaft) +
+                  vc(ausbildung, partnerschaft, by = arbeit_zeit_wochenstunden))
+cat("f5: "); print(f5_vc)
+m.glm5_large <- tvcglm(f5_vc, data = df_without_na, family = gaussian(),
+                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+                                                mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+plot(m.glm5_large, "coef", part = "A")
+plot(m.glm5_large, "coef", part = "B",  gp = gpar(fontsize=10), tnex = 3)
+summary(m.glm5_large)
+
+
+
+
+
+# ------- Modelsummary --------------
+
+
+modelsummary(models, # models[c(1,2,3,4,5)]
+             estimate = "{estimate}{stars}",
+             statistic = "({std.error})", # "(Std: {std.error} / p: {p.value})",
+             stars = FALSE) %>%
+  column_spec(c(5,6), background = '#E5FFCC') %>%
+  column_spec(c(7,8,9), background = '#CCFFFF')

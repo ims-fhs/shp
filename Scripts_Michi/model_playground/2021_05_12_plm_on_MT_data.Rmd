@@ -747,6 +747,52 @@ summary(m.re_plm)
 plot_model(m.re_plm, show.values = TRUE, value.offset = .5)
 ```
 
+
+## `m.re-kv_plm`
+
+Re-Modell with group-mean Centering --> hybrides Modell. 
+
+```{r, fig.height=6}
+df <- df_mt[,colnames(df_mt) %in% attr(df_mt, "var_type")$variable]
+df_numeric <- df %>% select_if(is.numeric)
+vars_numeric <- colnames(df_numeric)[!colnames(df_numeric) %in% "depression"]
+# group-mean centering for all variables exept "id" and "year"
+vars_mc <- colnames(df %>% select_if(is.numeric))
+vars_mc <- vars_numeric[! vars_numeric %in% c("id", "year", "depression", "cluster", "person_haushalt")]
+vars_mc_formula <- c()
+for (i in vars_mc) {
+  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, "_dev"))
+}
+# Mean centered dataset!
+df_mt_mc <- rockchalk::gmc(df_mt, vars_mc, by = "id")
+
+# create formula for group-meaned model.
+vars_not_mc <- base_vars[!base_vars %in% vars_mc]
+assertthat::assert_that(length(vars_mc) + length(vars_not_mc) == length(base_vars))
+
+
+formula_mc <- formula(paste("depression ~",
+                            paste(vars_not_mc, collapse = " + "), " + ",
+                            paste(vars_mc_formula, collapse = " + ")))
+print("Mean centered formula for mean-centered data:")
+print(formula_mc)
+
+
+m.re_kv_plm <- plm(formula_mc, df_mt_mc, index = c("id","year"), model="random")
+models <- rlist::list.append(models, m.re_kv_plm = m.re_kv_plm)
+summary(m.re_kv_plm)
+plot_model(m.re_kv_plm, show.values = TRUE, value.offset = 0.4,
+           value.size = 4, axis.lim = c(-1,1),
+           title = "Effekte im RE-KV-Modell",
+           axis.title = "Effektschätzung_inkl_95%-Konfidenzintervall", ci.lvl = 0.95)
+
+
+# Hausmann-Test for demeaned-data
+phtest(formula_mc, data = df_mt_mc)
+
+```
+
+
 ## `m.re_nlme`
 
 RE-Modell (mit `nlme::lme()`) -> Formulierung als Random intercept auf "id". Die
