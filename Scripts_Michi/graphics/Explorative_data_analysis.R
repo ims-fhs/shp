@@ -316,7 +316,100 @@ plot_model(m.fe_plm_inst2, show.values = TRUE, value.offset = 0.4,
 
 
 
-# ---------------- 12. jmcm  - see RMD & HTML ----------------------------------
+# ---------------- 12. kml, kmlShape, kml3d ---------------------------------------------
+library(tidyr)
+library(kml)
+library(kml3d)
+library(kmlShape)
+
+
+# 2d-Cluster only on depression (k = 5)
+set.seed(1)
+df_kml <- df_mt[1:3]
+df_kml <- pivot_wider(df_kml, names_from = year, values_from = depression)
+cluster <- clusterLongData(as.matrix(df_kml[c(2:ncol(df_kml))]))
+kml(cluster, nbClusters = 5, nbRedrawing = 1, toPlot='none')
+plot(cluster, 5, adjustLegend=-0.15, toPlot = "traj", ylab = "depression", xlab = "year")
+
+
+
+# # 2d-cluster with kmlShape instead of kml -> Does not work !! Session abort
+set.seed(1)
+df_kml_shape <- df_mt[1:3]
+df_kml_shape <- pivot_wider(df_kml_shape, names_from = year, values_from = depression)
+# df_kml_shape <- as.data.frame(df_kml_shape[complete.cases(df_kml_shape),]) # -> gives longer clusters (otherwise they are short)
+df_kml_shape <- df_kml_shape[1:300,] # -> time issues
+cluster_kml_shape <- cldsWide(trajWide = as.matrix(df_kml_shape[,c(2:ncol(df_kml_shape))]),
+                              id = as.numeric(df_kml_shape$id))
+
+plot(cluster_kml_shape)
+kmlShape(cluster_kml_shape, 5, toPlot = 'none')
+plot(cluster_kml_shape, ylab = "depression", xlab = "year")
+
+
+
+
+# # check all 3d-Clusters for depression + any numeric variable (k = 5)
+# # -> hausarbeit_wochenstunden has an interesting pattern
+# # -> alter has an interesting pattern
+# for (i in colnames(df_numeric)[4:ncol(df_numeric)]) {
+#   df_kml3d <- df_mt
+#   my_columns <- c("id", "year", "depression", i)
+#   df_kml3d <- pivot_wider(df_kml3d[,my_columns], names_from = year,
+#                           values_from = c(depression,my_columns[4]))
+#   df_kml3d <- as.data.frame(df_kml3d)
+#   cluster3d <- cld3d(df_kml3d, timeInData=list(18:33, 2:17),
+#                      varNames = c(my_columns[4], "depression"))
+#   kml3d(cluster3d,5,nbRedrawing=2,toPlot="none")
+#   plotMeans3d(cluster3d,5)
+# }
+
+
+# cluster for alter (5 cluster & 8 cluster sind interessant)
+set.seed(1)
+i <- "alter"
+df_kml3d <- df_mt
+my_columns <- c("id", "year", "depression", i)
+df_kml3d <- pivot_wider(df_kml3d[,my_columns], names_from = year,
+                        values_from = c(depression,my_columns[4]))
+df_kml3d <- as.data.frame(df_kml3d)
+cluster3d <- cld3d(df_kml3d, timeInData=list(18:33, 2:17),
+                   varNames = c(my_columns[4], "depression"))
+# kml3d(cluster3d,3:10,nbRedrawing=2,toPlot="none")
+kml3d(cluster3d,5,nbRedrawing=2,toPlot="none")
+# plotMeans3d(cluster3d,3)
+# plotMeans3d(cluster3d,4)
+plotMeans3d(cluster3d,5) # plotTraj3d(cluster3d,5)
+# plotMeans3d(cluster3d,6)
+# plotMeans3d(cluster3d,7)
+# plotMeans3d(cluster3d,8)
+# plotMeans3d(cluster3d,9)
+# plotMeans3d(cluster3d,10)
+
+
+
+# # cluster for hausarbeit_wochenstunden (nichts wirklich  interessant)
+# set.seed(1)
+# i <- "hausarbeit_wochenstunden"
+# df_kml3d <- df_mt
+# my_columns <- c("id", "year", "depression", i)
+# df_kml3d <- pivot_wider(df_kml3d[,my_columns], names_from = year,
+#                         values_from = c(depression,my_columns[4]))
+# df_kml3d <- as.data.frame(df_kml3d)
+# cluster3d <- cld3d(df_kml3d, timeInData=list(18:33, 2:17),
+#                    varNames = c(my_columns[4], "depression"))
+# kml3d(cluster3d,3:10,nbRedrawing=2,toPlot="none")
+# plotMeans3d(cluster3d,3)
+# plotMeans3d(cluster3d,4)
+# plotMeans3d(cluster3d,5)
+# plotMeans3d(cluster3d,6)
+# plotMeans3d(cluster3d,7)
+# plotMeans3d(cluster3d,8)
+# plotMeans3d(cluster3d,9)
+# plotMeans3d(cluster3d,10)
+
+
+# ---------------- 13. jmcm  - see RMD & HTML ----------------------------------
 # @MICHI: Grafiken direkt aus HTML kopiert!
 #
 #
@@ -338,7 +431,7 @@ plot_model(m.fe_plm_inst2, show.values = TRUE, value.offset = 0.4,
 
 
 
-# ------------- 13. vcrpart ----------------------------------------------------
+# ------------- 14. vcrpart ----------------------------------------------------
 library(vcrpart)
 df_without_na <- na.omit(df_mt[,var_type$variable])
 
