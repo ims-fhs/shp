@@ -761,7 +761,8 @@ vars_mc <- colnames(df %>% select_if(is.numeric))
 vars_mc <- vars_numeric[! vars_numeric %in% c("id", "year", "depression", "cluster", "person_haushalt")]
 vars_mc_formula <- c()
 for (i in vars_mc) {
-  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, "_dev"))
+  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, ""))
+
 }
 # Mean centered dataset!
 df_mt_mc <- rockchalk::gmc(df_mt, vars_mc, by = "id")

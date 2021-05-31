@@ -267,7 +267,7 @@ vars_mc <- colnames(df %>% select_if(is.numeric))
 vars_mc <- vars_numeric[! vars_numeric %in% c("id", "year", "depression", "cluster", "person_haushalt")]
 vars_mc_formula <- c()
 for (i in vars_mc) {
-  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, "_dev"))
+  vars_mc_formula <- c(vars_mc_formula, paste0(i,"_mn"), paste0(i, ""))
 }
 # Mean centered dataset!
 df_mt_mc <- rockchalk::gmc(df_mt, vars_mc, by = "id")
@@ -323,29 +323,29 @@ library(kml3d)
 library(kmlShape)
 
 
-# 2d-Cluster only on depression (k = 5)
-set.seed(1)
-df_kml <- df_mt[1:3]
-df_kml <- pivot_wider(df_kml, names_from = year, values_from = depression)
-cluster <- clusterLongData(as.matrix(df_kml[c(2:ncol(df_kml))]))
-kml(cluster, nbClusters = 5, nbRedrawing = 1, toPlot='none')
-plot(cluster, 5, adjustLegend=-0.15, toPlot = "traj", ylab = "depression", xlab = "year")
+# # 2d-Cluster only on depression (k = 5)
+# set.seed(1)
+# df_kml <- df_mt[1:3]
+# df_kml <- pivot_wider(df_kml, names_from = year, values_from = depression)
+# cluster <- clusterLongData(as.matrix(df_kml[c(2:ncol(df_kml))]))
+# kml(cluster, nbClusters = 5, nbRedrawing = 1, toPlot='none')
+# plot(cluster, 5, adjustLegend=-0.15, toPlot = "traj", ylab = "depression", xlab = "year")
 
 
 
-# # 2d-cluster with kmlShape instead of kml -> Does not work !! Session abort
-set.seed(1)
-df_kml_shape <- df_mt[1:3]
-df_kml_shape <- pivot_wider(df_kml_shape, names_from = year, values_from = depression)
-# df_kml_shape <- as.data.frame(df_kml_shape[complete.cases(df_kml_shape),]) # -> gives longer clusters (otherwise they are short)
-df_kml_shape <- df_kml_shape[1:300,] # -> time issues
-cluster_kml_shape <- cldsWide(trajWide = as.matrix(df_kml_shape[,c(2:ncol(df_kml_shape))]),
-                              id = as.numeric(df_kml_shape$id))
-
-plot(cluster_kml_shape)
-kmlShape(cluster_kml_shape, 5, toPlot = 'none')
-plot(cluster_kml_shape, ylab = "depression", xlab = "year")
-
+# # # 2d-cluster with kmlShape instead of kml -> Does not work !! Session abort
+# set.seed(1)
+# df_kml_shape <- df_mt[1:3]
+# df_kml_shape <- pivot_wider(df_kml_shape, names_from = year, values_from = depression)
+# # df_kml_shape <- as.data.frame(df_kml_shape[complete.cases(df_kml_shape),]) # -> gives longer clusters (otherwise they are short)
+# df_kml_shape <- df_kml_shape[1:300,] # -> time issues
+# cluster_kml_shape <- cldsWide(trajWide = as.matrix(df_kml_shape[,c(2:ncol(df_kml_shape))]),
+#                               id = as.numeric(df_kml_shape$id))
+#
+# plot(cluster_kml_shape)
+# kmlShape(cluster_kml_shape, 5, toPlot = 'none')
+# plot(cluster_kml_shape, ylab = "depression", xlab = "year")
+#
 
 
 
@@ -432,59 +432,59 @@ plotMeans3d(cluster3d,5) # plotTraj3d(cluster3d,5)
 
 
 # ------------- 14. vcrpart ----------------------------------------------------
-library(vcrpart)
-df_without_na <- na.omit(df_mt[,var_type$variable])
-
-
-# Gaussian - Only two varying Intercepts
-f1_vc <- depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)
-print(f1_vc)
-m.glm1_small <- tvcglm(f1_vc, data = df_without_na, family = gaussian(),
-                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-                                                mindev = 30, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-plot(m.glm1_small, "coef")
-summary(m.glm1_small)
-
-
-# glm on base formula
-m.glm_ref <- glm(base_formula, data = df_without_na, family = gaussian())
-summary(m.glm_ref)
-models <- rlist::list.append(models, GLM_ref = m.glm_ref)
-
-
-# complete model with 1 varying intercept & 1 varying slope for moderator "ausbildung"
-f3_vc <- update(base_formula,  ~ . + vc(ausbildung) + vc(ausbildung, by = arbeit_zeit_wochenstunden))
-cat("f3: "); print(f3_vc)
-m.glm3_large <- tvcglm(f3_vc, data = df_without_na, family = gaussian(),
-                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-                                                mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-plot(m.glm3_large, "coef", part = "A")
-plot(m.glm3_large, "coef", part = "B")
-summary(m.glm3_large)
-
-# complete model with 1 varying intercept & 1 varying slope for moderator "hausarbeit wochenstunden"
-f4_vc <- update(base_formula,  ~ . + vc(hausarbeit_wochenstunden) +
-                  vc(hausarbeit_wochenstunden, by = arbeit_zeit_wochenstunden))
-cat("f4: "); print(f4_vc)
-m.glm4_large <- tvcglm(f4_vc, data = df_without_na, family = gaussian(),
-                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-                                                mindev = 0.5, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-plot(m.glm4_large, "coef", part = "A")
-plot(m.glm4_large, "coef", part = "B", gp = gpar(fontsize=8), tnex = 3)
-summary(m.glm4_large)
-
-
-# complete model with 1 varying intercept & 1 varying slope for moderators "ausbildung" & hausarbeit wochenstunden"
-f5_vc <- update(base_formula,  ~ . + vc(partnerschaft) +
-                  vc(ausbildung, partnerschaft, by = arbeit_zeit_wochenstunden))
-cat("f5: "); print(f5_vc)
-m.glm5_large <- tvcglm(f5_vc, data = df_without_na, family = gaussian(),
-                       control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
-                                                mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
-plot(m.glm5_large, "coef", part = "A")
-plot(m.glm5_large, "coef", part = "B",  gp = gpar(fontsize=10), tnex = 3)
-summary(m.glm5_large)
-
+# library(vcrpart)
+# df_without_na <- na.omit(df_mt[,var_type$variable])
+#
+#
+# # Gaussian - Only two varying Intercepts
+# f1_vc <- depression ~ -1 + vc(ausbildung, arbeit_zeit_ueberstunden)
+# print(f1_vc)
+# m.glm1_small <- tvcglm(f1_vc, data = df_without_na, family = gaussian(),
+#                        control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                                 mindev = 30, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+# plot(m.glm1_small, "coef")
+# summary(m.glm1_small)
+#
+#
+# # glm on base formula
+# m.glm_ref <- glm(base_formula, data = df_without_na, family = gaussian())
+# summary(m.glm_ref)
+# models <- rlist::list.append(models, GLM_ref = m.glm_ref)
+#
+#
+# # complete model with 1 varying intercept & 1 varying slope for moderator "ausbildung"
+# f3_vc <- update(base_formula,  ~ . + vc(ausbildung) + vc(ausbildung, by = arbeit_zeit_wochenstunden))
+# cat("f3: "); print(f3_vc)
+# m.glm3_large <- tvcglm(f3_vc, data = df_without_na, family = gaussian(),
+#                        control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                                 mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+# plot(m.glm3_large, "coef", part = "A")
+# plot(m.glm3_large, "coef", part = "B")
+# summary(m.glm3_large)
+#
+# # complete model with 1 varying intercept & 1 varying slope for moderator "hausarbeit wochenstunden"
+# f4_vc <- update(base_formula,  ~ . + vc(hausarbeit_wochenstunden) +
+#                   vc(hausarbeit_wochenstunden, by = arbeit_zeit_wochenstunden))
+# cat("f4: "); print(f4_vc)
+# m.glm4_large <- tvcglm(f4_vc, data = df_without_na, family = gaussian(),
+#                        control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                                 mindev = 0.5, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+# plot(m.glm4_large, "coef", part = "A")
+# plot(m.glm4_large, "coef", part = "B", gp = gpar(fontsize=8), tnex = 3)
+# summary(m.glm4_large)
+#
+#
+# # complete model with 1 varying intercept & 1 varying slope for moderators "ausbildung" & hausarbeit wochenstunden"
+# f5_vc <- update(base_formula,  ~ . + vc(partnerschaft) +
+#                   vc(ausbildung, partnerschaft, by = arbeit_zeit_wochenstunden))
+# cat("f5: "); print(f5_vc)
+# m.glm5_large <- tvcglm(f5_vc, data = df_without_na, family = gaussian(),
+#                        control = tvcglm_control(minsize = 30, # N_0 = 30 minimal number of nodes.
+#                                                 mindev = 0, cv = FALSE)) # D_min = 0 minimal log-likelihood reduction
+# plot(m.glm5_large, "coef", part = "A")
+# plot(m.glm5_large, "coef", part = "B",  gp = gpar(fontsize=10), tnex = 3)
+# summary(m.glm5_large)
+#
 
 
 
@@ -495,6 +495,32 @@ summary(m.glm5_large)
 modelsummary(models, # models[c(1,2,3,4,5)]
              estimate = "{estimate}{stars}",
              statistic = "({std.error})", # "(Std: {std.error} / p: {p.value})",
-             stars = FALSE) %>%
-  column_spec(c(5,6), background = '#E5FFCC') %>%
-  column_spec(c(7,8,9), background = '#CCFFFF')
+             stars = FALSE,
+             # coef_rename = c("alter_mn"="alter ")
+             )
+
+
+
+names_coefs <- names(models[[1]]$coefficients)[-1]
+my_cols <- c("black", "darkred", "green3", "chocolate2", "blue")
+
+par(mai = c(3.5, 1, 0.5, 0.5))
+plot(models[[1]]$coefficients[names_coefs], type = "l", xaxt = "n", xlab = "",
+     ylim = c(-0.3,0.45), ylab = "Geschätzte Koeffizienten")
+legend("topright", legend = names(models)[1:5], col = my_cols,
+       lwd = 2, bty = "n", pt.cex = 2, cex = 1.2,
+       text.col = my_cols,
+       inset = c(0.08, 0.05))
+
+grid()
+abline(h=0)
+axis(1, at=seq(1,length(names_coefs)), labels=names_coefs, las = 2, cex.axis = 0.9)
+
+for (i in seq(2,5)) {
+  my_coefs <- models[[i]]$coefficients
+  assertthat::assert_that(all(names_coefs %in% names(my_coefs)))
+  lines(my_coefs[names_coefs], type = "l", col = my_cols[i])
+}
+
+
+
