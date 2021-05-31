@@ -131,7 +131,7 @@ rm(df_dummy)
 
 
 
-# ------------------------------ 4. Korrelationen ------------------------------
+# ------------------------------ 4. Korrelationen & Varianz  ------------------
 
 dep_covariance <- var(df_numeric, na.rm = TRUE, use = "pairwise.complete.obs") # calculate variances & covariances
 dep_correaltion <- cov2cor(dep_covariance)
@@ -142,7 +142,11 @@ corrplot::corrplot(dep_correaltion, method = "number", cl.pos = "r",
                    tl.col = "black", number.cex = 1.2)
 
 
-
+tmp <- multilevelTools::meanDecompose(depression ~ id, data = df)
+plot(JWileymisc::testDistribution(tmp[["depression by id"]]$X, extremevalues = "theoretical", ev.perc = .001),
+     varlab = "Individueller Mittelwert für depression ('between')")
+plot(JWileymisc::testDistribution(tmp[["depression by residual"]]$X, extremevalues = "theoretical", ev.perc = .001),
+     varlab = "Individuelle Abweichung vom individuellen Mittelwert für depression ('within')")
 
 # ------------------------------- 5. Pooled model ------------------------------
 
