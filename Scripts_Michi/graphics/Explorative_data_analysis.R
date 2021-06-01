@@ -131,7 +131,7 @@ rm(df_dummy)
 
 
 
-# ------------------------------ 4. Korrelationen & Varianz  ------------------
+# ------------------- 4. Korrelationen & Varianz & 2d-Verteilungen -------------
 
 dep_covariance <- var(df_numeric, na.rm = TRUE, use = "pairwise.complete.obs") # calculate variances & covariances
 dep_correaltion <- cov2cor(dep_covariance)
@@ -147,6 +147,36 @@ plot(JWileymisc::testDistribution(tmp[["depression by id"]]$X, extremevalues = "
      varlab = "Individueller Mittelwert für depression ('between')")
 plot(JWileymisc::testDistribution(tmp[["depression by residual"]]$X, extremevalues = "theoretical", ev.perc = .001),
      varlab = "Individuelle Abweichung vom individuellen Mittelwert für depression ('within')")
+
+
+# 2d-Count
+df_2d <- df_mt
+df_2d <- df_mt[!is.na(df_mt$ausbildung),]
+n_bins <- 10
+p1 <- ggplot(df_2d, aes(x = einschraenkung_weg_ges_zustand, y = ausbildung)) +
+  stat_bin2d(bins = n_bins) +
+  stat_bin2d(geom = "text", aes(label = ..count..), bins = n_bins) +
+  scale_color_continuous("Anzahl Beobachtungen pro Gruppe",
+                         low = alpha("violet", 0.1), high = "darkviolet",
+                         aesthetics = c("fill", "colour")) +
+  theme(legend.position="bottom") +
+  ggtitle("Anzahl Beobachtungen nach 'Ausbildung' und 'Einschränkung wegen Gesundheitszustand'")
+
+
+
+# 2d-summary of third variable
+p2 <- ggplot(df_2d, aes(x = einschraenkung_weg_ges_zustand, y = ausbildung, z = depression)) +
+  stat_summary_2d(fun = mean,bins = n_bins, na.rm = TRUE) +
+  stat_summary_2d(aes(label = round(..value..,1)), fun="mean", geom="text", bins = n_bins) +
+  scale_color_continuous("Mittlerer Wert für Depression",
+                         low = "green3", high = "red",
+                         aesthetics = c("fill", "colour")) +
+  theme(legend.position="bottom") +
+  ggtitle("Mittlere Depression nach 'Ausbildung' und 'Einschränkung wegen Gesundheitszustand")
+
+ggpubr::ggarrange(p1, p2, ncol = 1)
+
+
 
 # ------------------------------- 5. Pooled model ------------------------------
 
