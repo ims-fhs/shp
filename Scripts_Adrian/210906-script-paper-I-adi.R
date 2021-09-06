@@ -2,11 +2,16 @@
 imsbasics::clc()
 library(tidyverse)
 library(kml)
+#install.packages('GGally')
 library(GGally)
 library(plm)
+#install.packages('stargazer')
 library(stargazer)
+#install.packages('BBmisc')
 library(BBmisc)
+#install.packages("REEMtree")
 library(REEMtree)
+#install.packages("rattle")
 library(rattle)
 library(knitr)
 
@@ -80,14 +85,62 @@ sample$pflege_angehoerige <- factor(sample$pflege_angehoerige, levels = c(1,2), 
 table(sample$pflege_angehoerige, useNA = "ifany")
 
 
-# Clustering --------------------------------------------------------------
+# Flankenerkennung --------------------------------------------------------------
+
+slice_data_in_sequence <- function(data, n, m)
+{
+  ### Makes list where each dataframe from single id is an item in the list, without any na's
+  data_per_id <- list()
+  for(i in 1:length(unique(data$id)))
+  {
+    data_per_id[[i]] = data %>% filter(id == unique(data$id)[i]) %>% drop_na()
+  }
+
+  ### Makes list where each dataframe from single id is an item in the list, cut down to the sequence length
+  data_cut <- list()
+  for(i in 1:length(data_per_id))
+  {
+    ### checks if length of not na rows longer than sequence
+    if(nrow(data_per_id[[i]]) >= n)
+    {
+      ### checks if the year is continous without missing years
+      if(max(data_per_id[[i]]$year) - min(data_per_id[[i]]$year) == length(data_per_id[[i]]$year)-1)
+      {
+        if((data_per_id[[i]][2,]$depression) >= (data_per_id[[i]][1,]$depression) + m)
+        {
+          data_cut[[i]] = data_per_id[[i]][1:n,]
+          data_cut[[i]]$rel_year <- seq.int(nrow(data_cut[[i]]))
+        }
+      }
+    }
+  }
+
+  ### drop empty lists
+  data_cut = data_cut[-which(sapply(data_cut, is.null))]
+
+  ### change list to data frame
+  dataframe_sliced <- do.call(rbind.data.frame, data_cut)
+
+  return(dataframe_sliced)
+}
+
 df_kml <- sample[1:3]
+
+df_kml_5_2 <- slice_data_in_sequence(df_kml, 5, 2)
+
+
+#Wähle zwischen Kml und Kml-Shape -----------------------------------------
+
+# Kml ---------------------------------------------------------------------
+
+
 
 set.seed(1)
 for (cluster_number in c(5)) {
   for (redrawing_number in c(1)) {
-    kml_cluster_data <- pivot_wider(df_kml[1:3], names_from = year, values_from = depression)
-    cluster = clusterLongData(as.matrix(kml_cluster_data[c(2:16)]))
+    kml_cluster_data <- df_kml_5_2 %>% select(c(id, depression, rel_year)) %>%
+      pivot_wider (names_from = rel_year, values_from = depression)
+    cluster = clusterLongData(as.matrix(kml_cluster_data[c(2:6)]))#muss je nach länge der Daten angepasst werden
 
     start_time <- Sys.time()
     kml(cluster, nbClusters = cluster_number, nbRedrawing = redrawing_number, toPlot='none')
@@ -100,17 +153,56 @@ for (cluster_number in c(5)) {
   }
 }
 
-cluster_size <- 5
-# kml_cluster_data <- reshape(df_kml, idvar = "id", timevar = "year", direction = "wide")
-# cluster <- clusterLongData(as.matrix(kml_cluster_data[c(2:16)]))
-# Shape_kml <- kml(cluster, nbClusters = cluster_size, nbRedrawing = 10, toPlot='both')
-
-plot(cluster,cluster_size)
-
 ### code to add clusters to the original data
 id_not_na <- as.numeric(str_extract(cluster@idFewNA, "\\-*\\d+\\.*\\d*"))
-unique_id <- unique(df_kml$id)
+unique_id <- unique(df_kml_5_2$id)
 labels <- as.data.frame(cluster@c5[[1]]@clusters)
+
+real_id_not_na <- list()
+for(i in 1:length(id_not_na)) {
+  real_id_not_na[[i]] <- unique_id[id_not_na[i]]
+}
+real_id_not_na <- do.call(rbind.data.frame, real_id_not_na)
+df_labeled <- cbind(real_id_not_na, labels)
+colnames(df_labeled) <- c("id","cluster")
+
+df_clustered <- right_join(sample, df_labeled, by = "id")
+(df_clustered[c(1,2,3,39)])
+
+
+
+#kml-Shape ------------------------------------------------------------------
+df_kml <- df_kml %>% drop_na()
+library(kmlShape)
+set.seed(1)
+for (cluster_number in c(3)) {
+
+    kml_cluster_data <- df_kml %>% select(c(id, depression, year)) %>%
+      pivot_wider (names_from = year, values_from = depression)
+    cluster <- cldsWide(data.frame(kml_cluster_data))
+    reduceTraj(cluster, nbSenators = 75, imputationMethod = "linearInterpol")
+
+
+    start_time <- Sys.time()
+    kmlShape(cluster, nbClusters = cluster_number, timeScale = 0.1, FrechetSumOrMax =
+              "max", toPlot="none", parAlgo=parKmlShape(aggregationMethod = "all",  maxIter = 500))
+    end_time <- Sys.time()
+    runtime = end_time - start_time
+    plot(cluster)
+    print("KML-Shape Algortihm")
+    print(runtime)
+    #print(paste0("Cluster number = ", cluster_number, ". Redrawing number = ", redrawing_number))
+
+}
+
+### code to add clusters to the original data
+id_not_na <- as.numeric(1:length(cluster@id))
+unique_id <- unique(df_kml_5_2$id)
+labels <- matrix()
+for(i in 1:length(cluster@clusters)){
+  labels[[i]] <- (cluster@clusters[[i]])
+}
+labels <- as.data.frame(labels)
 
 
 real_id_not_na <- list()
@@ -122,7 +214,21 @@ df_labeled <- cbind(real_id_not_na, labels)
 colnames(df_labeled) <- c("id","cluster")
 
 df_clustered <- right_join(sample, df_labeled, by = "id")
-head(df_clustered[c(1,2,3,39)])
+(df_clustered[c(1,2,3,39)])
+
+
+
+# überbleibsel--------------------------------------------------------------
+
+
+cluster_size <- 5
+# kml_cluster_data <- reshape(df_kml_5_2, idvar = "id", timevar = "year", direction = "wide")
+# cluster <- clusterLongData(as.matrix(kml_cluster_data[c(2:16)]))
+# Shape_kml <- kml(cluster, nbClusters = cluster_size, nbRedrawing = 10, toPlot='both')
+
+plot(cluster,cluster_size)
+
+
 
 # 1) OLS: L>D --------------------------------------------------------------
 
