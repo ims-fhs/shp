@@ -24,7 +24,7 @@ assertthat::assert_that(ncol(df_long) == 36)
 
 colnames(df_long) <- c("id",
                        "year",
-                       "depression",
+                       "ermuedung",
                        "arbeit_zeit_wochenstunden",
                        "arbeit_zeit_wochenstunden_vereinbart",
                        "arbeit_zeit_wochenende",
@@ -93,8 +93,8 @@ library(kmlShape)
 set.seed(1)
 for (cluster_number in c(4)) {
 
-    kml_cluster_data <- df_kml %>% select(c(id, depression, year)) %>%
-      pivot_wider (names_from = year, values_from = depression)
+    kml_cluster_data <- df_kml %>% select(c(id, ermuedung, year)) %>%
+      pivot_wider (names_from = year, values_from = ermuedung)
     cluster <- cldsWide(data.frame(kml_cluster_data))
     reduceTraj(cluster, nbSenators = 75, imputationMethod = "linearInterpol")
 
@@ -150,7 +150,7 @@ df_clustered$geschlecht <- factor(df_clustered$geschlecht, levels = c(1,2), labe
 table(df_clustered$geschlecht, useNA = "ifany")
 
 # Alter
-ggplot(df_clustered, aes(alter, depression)) +
+ggplot(df_clustered, aes(alter, ermuedung)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth()
 
@@ -178,7 +178,7 @@ table(df_clustered$tod_person, useNA = "ifany")
 hist(log(df_clustered$haushaltsaequivalenzeinkommen))
 df_clustered$haushaltsaequivalenzeinkommen <- log(df_clustered$haushaltsaequivalenzeinkommen)
 
-ols1 <- plm(depression ~
+ols1 <- plm(ermuedung ~
       ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
       einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
       partnerschaft + tod_person,
@@ -192,7 +192,7 @@ stargazer(ols1,
 
 df_clustered_norm <- normalize(df_clustered, method = "range", range = c(0, 1))
 
-ols1_norm <- plm(depression ~
+ols1_norm <- plm(ermuedung ~
                    ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
                    einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
                    partnerschaft + tod_person,
@@ -204,40 +204,82 @@ stargazer(ols1_norm,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# ggplot(df_clustered, aes(partnerschaft, depression)) +
+# ggplot(df_clustered, aes(partnerschaft, ermuedung)) +
 #   geom_jitter(alpha = 0.01) +
 #   geom_smooth(method = lm)
 #
 # ggplot(df_clustered_norm) +
-#   geom_jitter(aes(x = partnerschaft, y = depression), na.rm = TRUE, alpha = 0.01) +
-#   geom_smooth(aes(x = partnerschaft, y = depression), na.rm = TRUE, method = lm)
+#   geom_jitter(aes(x = partnerschaft, y = ermuedung), na.rm = TRUE, alpha = 0.01) +
+#   geom_smooth(aes(x = partnerschaft, y = ermuedung), na.rm = TRUE, method = lm)
 #
 
 # 1) Zusatzauswertungen EDA
 
-# Nehmen Depressionen über die Jahre zu?
+# Nehmen ermuedungen über die Jahre zu?
 
-ggplot(df_clustered, aes(year, depression)) +
-  geom_jitter(alpha = 0.01) +
+df_clustered %>% group_by(id) %>% summarise(n())
+df_clustered %>% filter(!is.na(ermuedung)) %>% summarise(n())
+df_clustered %>% summarise(median(ermuedung, na.rm = TRUE))
+df_clustered %>% summarise(quantile(ermuedung, probs = .9, na.rm = TRUE))
+
+ggplot(df_clustered %>% filter(!is.na(ermuedung)), aes(x = factor(ermuedung))) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous(labels=scales::percent) +
+  labs(
+    x = "Erschöpfung nach Arbeit um Sachen zu machen",
+    y = "Anteil",
+    title = "Verteilung der Variable Erschöpfung",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+df_clustered %>% group_by(year) %>% summarise(quantile(ermuedung, probs = .75, na.rm = TRUE))
+df_clustered %>% group_by(year) %>% summarise(mean(ermuedung, na.rm = TRUE))
+df_clustered %>% group_by(year) %>% summarise(mean = mean(ermuedung, na.rm = TRUE)) %>% slice_min(mean)
+df_clustered %>% group_by(year) %>% summarise(mean = mean(ermuedung, na.rm = TRUE)) %>% slice_max(mean)
+
+ggplot(df_clustered, aes(year + 2000, ermuedung)) +
+  geom_violin(aes(group = as.factor(year))) +
+  geom_smooth(color = "black") +
+  geom_quantile(quantiles = .5, color = "black") +
+  scale_y_continuous(n.breaks = 7) +
+  labs(
+    x = "Jahr",
+    y = "Erschöpfung nach Arbeit um Sachen zu machen",
+    title = "Verteilung der Variable Erschöpfung über die Jahre",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+ggplot(df_clustered, aes(year + 2000, ermuedung)) +
+  geom_jitter(alpha = 0.001) +
   geom_smooth()
+
+ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
+  geom_boxplot()
+
+ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
+  geom_violin(group = as.factor(year)) +
+  theme_bw()
+
 
 
 df_clustered %>%
   group_by(year) %>%
-  summarise(depression = mean(depression, na.rm = TRUE))
+  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
 
 df_clustered %>%
   mutate(alter = floor(alter/10)*10) %>%
   group_by(alter) %>%
-  summarise(depression = mean(depression, na.rm = TRUE))
+  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
 
 df_clustered %>%
   mutate(alter = floor(alter/10)*10) %>%
   group_by(year, alter) %>%
-  summarise(depression = mean(depression, na.rm = TRUE)) %>%
+  summarise(ermuedung = mean(ermuedung, na.rm = TRUE)) %>%
   filter(year %in% c(4, 5, 18, 19))
 
-ols1_b <- plm(depression ~
+ols1_b <- plm(ermuedung ~
               alter + alter_2 + year,
             data = df_clustered, index = c("id"), model="pooling")
 
@@ -290,7 +332,7 @@ ggplot(df_clustered, aes(year, abschalten_nach_arbeit)) +
 
 
 df_dep_cov <- df_clustered %>%
-  select(depression, ausbildung, alter, geschlecht, ch_nationalitaet,
+  select(ermuedung, ausbildung, alter, geschlecht, ch_nationalitaet,
                                         einschraenkung_weg_ges_zustand, haushaltsaequivalenzeinkommen,
                                         partnerschaft, tod_person) %>%
   mutate(across(where(is.factor), as.numeric))
@@ -302,21 +344,21 @@ dep_correaltion <- cov2cor(dep_covariance)
 corrplot::corrplot(dep_correaltion, method = "square", cl.pos = "r",
                    tl.col = "black")
 
-# Korrelation Depression mit allen anderen
+# Korrelation ermuedung mit allen anderen
 col2 <- colorRampPalette(c("#67001F", "#B2182B", "#D6604D", "#F4A582",
                            "#FDDBC7", "#FFFFFF", "#D1E5F0", "#92C5DE",
                            "#4393C3", "#2166AC", "#053061"))
 my_colors <- col2(201)
-my_colors <- my_colors[101 + round(100*dep_correaltion["depression",])]
-text_pos_y <- ifelse(dep_correaltion["depression",] > 0,
-                     yes = dep_correaltion["depression",] + 0.1,
-                     dep_correaltion["depression",] - 0.1)
+my_colors <- my_colors[101 + round(100*dep_correaltion["ermuedung",])]
+text_pos_y <- ifelse(dep_correaltion["ermuedung",] > 0,
+                     yes = dep_correaltion["ermuedung",] + 0.1,
+                     dep_correaltion["ermuedung",] - 0.1)
 
 par(mar = c(15, 4, 4, 2) + 0.1)
-xx <- barplot(dep_correaltion["depression",], las = 2, ylim = c(-0.4,1.2),
-              main = "Korrelation anderer numerischer Varibeln mit `depression`",
+xx <- barplot(dep_correaltion["ermuedung",], las = 2, ylim = c(-0.4,1.2),
+              main = "Korrelation anderer numerischer Varibeln mit `ermuedung`",
               col = my_colors)
-text(xx, text_pos_y, labels= round(dep_correaltion["depression",], 2))
+text(xx, text_pos_y, labels= round(dep_correaltion["ermuedung",], 2))
 
 
 # 2) OLS A+L>D ------------------------------------------------------------
@@ -355,7 +397,7 @@ table(df_ols2$arbeit_qualifikation, useNA = "ifany")
 
 
 # Arbeitsstunden pro Woche recodieren
-# ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, depression)) +
+# ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
 #   geom_jitter(alpha = 0.01) +
 #   geom_smooth(method = lm)
 #
@@ -378,11 +420,11 @@ df_ols2 <- df_ols2 %>%
 df_ols2$arbeit_zeit_nacht <- factor(df_ols2$arbeit_zeit_nacht, levels = c(1,2), labels = c("Nein", "Ja"))
 table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
 
-# ggplot(df_ols2 %>% drop_na, aes(arbeit_zeit_nacht, depression)) +
+# ggplot(df_ols2 %>% drop_na, aes(arbeit_zeit_nacht, ermuedung)) +
 #   geom_boxplot() +
 #   geom_smooth()
 
-# stargazer(plm(depression ~
+# stargazer(plm(ermuedung ~
 #                 arbeit_zeit_nacht,
 #               data = df_ols2, index = c("id","year"), model="pooling"),
 #           title="arbeit_zeit_nacht", type="text",
@@ -403,7 +445,7 @@ table(df_ols2$arbeit_intensitaet, useNA = "ifany")
 table(df_ols2$arbeit_zufriedenheit_atmosphaere, useNA = "ifany")
 
 
-ols2 <- plm(depression ~
+ols2 <- plm(ermuedung ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -421,14 +463,14 @@ stargazer(ols2,
 
 # 2) Zusatzfragen A > D
 
-ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, depression)) +
+ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth()
 
 df_ols2 %>%
   mutate(arbeit_zeit_wochenstunden = pmin(70, pmax(20, floor(arbeit_zeit_wochenstunden/10)*10))) %>%
   group_by(arbeit_zeit_wochenstunden) %>%
-  summarise(depression = mean(depression, na.rm = TRUE))
+  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
 
 
 
@@ -449,7 +491,7 @@ df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(1,2), la
 # df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(0,1,2), labels = c("Keine Kinderbetreuung", "Geteilte Kinderbetreuung", "Alleinerziehend"))
 table(df_ols3$kinder_betreuung, useNA = "ifany")
 
-# stargazer(plm(depression ~
+# stargazer(plm(ermuedung ~
 #                 kinder_betreuung,
 #               data = df_ols3, index = c("id","year"), model="within"),
 #           title="Kinderbetreuung", type="text",
@@ -461,7 +503,7 @@ table(df_ols3$kinder_betreuung, useNA = "ifany")
 table(df_ols3$pflege_angehoerige, useNA = "ifany")
 
 # Analyse Pooled OLS A+L+C>D
-ols3 <- plm(depression ~
+ols3 <- plm(ermuedung ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -478,24 +520,24 @@ stargazer(ols3,
           df=FALSE, digits=4)
 
 # 3) Zusatzfragen
-# Erwerbs+ Hausarbeit > Depression
+# Erwerbs+ Hausarbeit > ermuedung
 
 df_arbeit_zeit_sum <- df_ols3 %>%
   mutate(arbeit_zeit_sum = arbeit_zeit_wochenstunden + hausarbeit_wochenstunden) %>%
-  select(id, year, depression, arbeit_zeit_sum)
+  select(id, year, ermuedung, arbeit_zeit_sum)
 
 df_arbeit_zeit_sum %>% slice_max(arbeit_zeit_sum)
 df_arbeit_zeit_sum %>% slice_min(arbeit_zeit_sum)
 
 
-ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, depression)) +
+ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth()
 
 df_arbeit_zeit_sum %>%
   mutate(arbeit_zeit_sum = pmin(100, pmax(20, floor(arbeit_zeit_sum/10)*10))) %>%
   group_by(arbeit_zeit_sum) %>%
-  summarise(depression = mean(depression, na.rm = TRUE))
+  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
 
 
 # 4) Die Verläufe
@@ -516,7 +558,7 @@ ggplot(df_ols3, aes(x=as.factor(cluster), y=arbeit_intensitaet)) +
 #
 #
 # # 4) FE A+L+C>D ----------------------------------------------------------
-# ols3_fe <- plm(depression ~
+# ols3_fe <- plm(ermuedung ~
 #               alter + alter_2 +
 #               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -537,9 +579,9 @@ ggplot(df_ols3, aes(x=as.factor(cluster), y=arbeit_intensitaet)) +
 #           column.labels=c("all"),
 #           df=FALSE, digits=4)
 #
-# df_ols3_timeshift <- df_ols3 %>% group_by(id) %>% mutate(depression = data.table::shift(depression, n = -1))
+# df_ols3_timeshift <- df_ols3 %>% group_by(id) %>% mutate(ermuedung = data.table::shift(ermuedung, n = -1))
 #
-# ols3_fe_ts <- plm(depression ~
+# ols3_fe_ts <- plm(ermuedung ~
 #                  alter + alter_2 +
 #                  einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #                  partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -563,7 +605,7 @@ class(df_ols3$cluster)
 regressions <- list()
 for(i in 1:length(unique(df_ols3$cluster))){
   df_ols3_cluster_i <- df_ols3 %>% filter(cluster == i)
-  regressions[[i]] = plm(depression ~
+  regressions[[i]] = plm(ermuedung ~
                            ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
                            einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
                            partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -586,7 +628,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # regressions <- list()
 # for(i in 1:length(unique(df_ols3$cluster))){
 #   df_ols3_cluster_i <- df_ols3 %>% filter(cluster == i)
-#   regressions[[i]] = plm(depression ~
+#   regressions[[i]] = plm(ermuedung ~
 #                            alter +
 #                            einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #                            partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -618,7 +660,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 #
 # df_ols3_int <- df_ols3
 #
-# ols3_int <- plm(depression ~
+# ols3_int <- plm(ermuedung ~
 #               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
 #               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -640,7 +682,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 #
 # # 7a) OLS A>D
 #
-# ols_nur_a <- plm(depression ~
+# ols_nur_a <- plm(ermuedung ~
 #                   arbeit_einbezug_entscheidungen +
 #                   arbeit_qualifikation + arbeit_zeit_wochenstunden +
 #                   arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
@@ -654,7 +696,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 #           df=FALSE, digits=4)
 #
 # # 8) FE A+L+C>D mit Interaktionen
-# ols3_fe_int <- plm(depression ~
+# ols3_fe_int <- plm(ermuedung ~
 #                   alter + alter_2 +
 #                   einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #                   partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -688,7 +730,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # regressions <- list()
 # for(i in 1:length(unique(df_ols3$cluster))){
 #   df_ols3_cluster_i <- df_ols3 %>% filter(cluster == i)
-#   regressions[[i]] = plm(depression ~
+#   regressions[[i]] = plm(ermuedung ~
 #                            einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
 #                            partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
 #                            arbeit_qualifikation + arbeit_zeit_wochenstunden +
@@ -706,7 +748,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # ggplot(df_ols3 %>% mutate(
 #   cluster = factor(cluster, c(1:4),
 #                    labels = c("unkritisch","verbessernd","verschlechternd","kritisch")))) + geom_smooth(
-#   aes(x = year, y = depression, group = cluster, color = as.factor(cluster)),
+#   aes(x = year, y = ermuedung, group = cluster, color = as.factor(cluster)),
 #   method = lm, se = FALSE)
 #
 # ggplot(df_ols3) +
@@ -786,7 +828,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # regressions <- list()
 # for(i in 1:length(unique(df_clustered$cluster))){
 #   df_per_cluster = df_clustered %>% filter(cluster == i)
-#   regressions[[i]] = plm(depression ~ arbeit_zeit_nacht, data = df_per_cluster, index = c("id","year"), model="pooling")
+#   regressions[[i]] = plm(ermuedung ~ arbeit_zeit_nacht, data = df_per_cluster, index = c("id","year"), model="pooling")
 # }
 #
 # stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]], regressions[[5]],
@@ -799,7 +841,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # regressions = list()
 # for(i in 1:length(unique(df_clustered$cluster))){
 #   df_per_cluster = df_clustered %>% filter(cluster == i)
-#   regressions[[i]] = plm(depression ~ stress_arbeit + arbeit_zufriedenheit_aufgaben + art_arbeitszeit + arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht + taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha + einschraenkung_weg_ges_zustand + tage_gesunheits_prob + chronische_krankheit + ausbildung + partnerschaft + tod_person + migrationshintergrund + geschlecht + alter + ch_nationalitaet + haushaltsaequivalenzeinkommen, data = df_per_cluster, index = c("id","year"), model="pooling")
+#   regressions[[i]] = plm(ermuedung ~ stress_arbeit + arbeit_zufriedenheit_aufgaben + art_arbeitszeit + arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht + taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha + einschraenkung_weg_ges_zustand + tage_gesunheits_prob + chronische_krankheit + ausbildung + partnerschaft + tod_person + migrationshintergrund + geschlecht + alter + ch_nationalitaet + haushaltsaequivalenzeinkommen, data = df_per_cluster, index = c("id","year"), model="pooling")
 # }
 #
 # stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]], regressions[[5]],
@@ -811,7 +853,7 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
 # regressions = list()
 # for(i in 1:length(unique(df_clustered$cluster))){
 #   df_per_cluster = df_clustered %>% filter(cluster == i)
-#   regressions[[i]] = plm(depression ~ arbeit_zufriedenheit_aufgaben + art_arbeitszeit + arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht + taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha, data = df_per_cluster, index = c("id","year"), model="within")
+#   regressions[[i]] = plm(ermuedung ~ arbeit_zufriedenheit_aufgaben + art_arbeitszeit + arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht + taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha, data = df_per_cluster, index = c("id","year"), model="within")
 # }
 #
 # stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]], regressions[[5]],
@@ -848,7 +890,7 @@ fancyRpartPlot(tree(tree),
 ### Regression tree all variables
 
 set.seed(1234)
-tree = REEMtree(depression ~ stress_arbeit + rueckenschmerzen + arbeit_zufriedenheit_aufgaben + art_arbeitszeit +               arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht +         taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha +    hausarbeit_wochenstunden + beeintraechtigung_arbeit_privat +abschalten_nach_arbeit + einschraenkung_weg_ges_zustand + tage_gesunheits_prob + chronische_krankheit + ausbildung + partnerschaft + tod_person + person_haushalt  + migrationshintergrund + geschlecht + alter + status + ch_nationalitaet + haushaltsaequivalenzeinkommen + kinder_betreuung, data = df_clustered_not_scaled %>% drop_na(), random=~1|id)
+tree = REEMtree(ermuedung ~ stress_arbeit + rueckenschmerzen + arbeit_zufriedenheit_aufgaben + art_arbeitszeit +               arbeit_einbezug_entscheidungen + arbeitskontrolle_personen + arbeit_qualifikation + arbeit_zeit_wochenstunden + arbeit_zeit_wochenende + arbeit_zeit_nacht +         taegl_pendeln_min + arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere + arbeit_laerm_schmutz + arbeit_ermuedende_koerperha +    hausarbeit_wochenstunden + beeintraechtigung_arbeit_privat +abschalten_nach_arbeit + einschraenkung_weg_ges_zustand + tage_gesunheits_prob + chronische_krankheit + ausbildung + partnerschaft + tod_person + person_haushalt  + migrationshintergrund + geschlecht + alter + status + ch_nationalitaet + haushaltsaequivalenzeinkommen + kinder_betreuung, data = df_clustered_not_scaled %>% drop_na(), random=~1|id)
 fancyRpartPlot(tree(tree),
                digits = 2,
                sub="",
