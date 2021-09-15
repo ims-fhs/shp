@@ -294,17 +294,55 @@ df_clustered %>%
   group_by(year) %>%
   summarise(arbeit_intensitaet = mean(arbeit_intensitaet, na.rm = TRUE))
 
-ggplot(df_clustered, aes(year, arbeit_intensitaet)) +
-  geom_jitter(alpha = 0.01) +
-  geom_smooth()
+df_clustered %>% group_by(id) %>% summarise(n())
+df_clustered %>% filter(!is.na(arbeit_intensitaet)) %>% summarise(n())
+df_clustered %>% summarise(median(arbeit_intensitaet, na.rm = TRUE))
+df_clustered %>% summarise(quantile(arbeit_intensitaet, probs = .9, na.rm = TRUE))
+
+ggplot(df_clustered %>% filter(!is.na(arbeit_intensitaet)), aes(x = factor(arbeit_intensitaet))) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  scale_y_continuous(labels=scales::percent) +
+  labs(
+    x = "Arbeitsrhythmus - Intensität",
+    y = "Anteil",
+    title = "Verteilung der Variable Arbeitsrhythmus - Intensität",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+ggplot(df_clustered, aes(year + 2000, arbeit_intensitaet)) +
+  geom_violin(aes(group = as.factor(year))) +
+  geom_smooth(color = "black") +
+  geom_quantile(quantiles = .5, color = "black") +
+  scale_y_continuous(n.breaks = 7) +
+  labs(
+    x = "Jahr",
+    y = "Arbeitsrhythmus - Intensität",
+    title = "Verteilung der Variable Arbeitsrhythmus - Intensität über die Jahre",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
 
 df_clustered %>%
   group_by(year) %>%
   summarise(arbeit_einbezug_entscheidungen = mean(arbeit_einbezug_entscheidungen, na.rm = TRUE))
 
-ggplot(df_clustered, aes(year, arbeit_einbezug_entscheidungen)) +
-  geom_jitter(alpha = 0.01) +
-  geom_smooth()
+ggplot(df_clustered %>% filter(!is.na(arbeit_einbezug_entscheidungen)), aes(year + 2000, fill = as.factor(1/arbeit_einbezug_entscheidungen))) +
+  geom_bar(position = "fill") +
+  scale_y_continuous(labels=scales::percent) +
+  scale_fill_manual(values=c("grey10", "grey50", "grey80"), labels = c("nein", "ja, Meinung", "ja, Entscheide")) +
+  labs(
+    x = "Jahr",
+    y = "Anteil",
+    title = "Einbezug bei Entscheidungen bei der Arbeit",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  guides(fill = guide_legend("Merkmalsausprägung")) +
+  theme_bw()
+
+
+
 
 df_clustered %>%
   group_by(year) %>%
@@ -326,10 +364,18 @@ df_clustered %>%
   group_by(year) %>%
   summarise(abschalten_nach_arbeit = mean(abschalten_nach_arbeit, na.rm = TRUE))
 
-ggplot(df_clustered, aes(year, abschalten_nach_arbeit)) +
-  geom_jitter(alpha = 0.01) +
-  geom_smooth()
-
+ggplot(df_clustered, aes(year + 2000, abschalten_nach_arbeit)) +
+  geom_violin(aes(group = as.factor(year))) +
+  geom_smooth(color = "black") +
+  geom_quantile(quantiles = .5, color = "black") +
+  scale_y_continuous(n.breaks = 7) +
+  labs(
+    x = "Jahr",
+    y = "Schwierigkeit nach Arbeit abzuschalten",
+    title = "Verteilung der Variable Schwierigkeit nach Arbeit abzuschalten über die Zeit",
+    subtitle = "alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
 
 df_dep_cov <- df_clustered %>%
   select(ermuedung, ausbildung, alter, geschlecht, ch_nationalitaet,
@@ -532,7 +578,7 @@ df_arbeit_zeit_sum %>% slice_min(arbeit_zeit_sum)
 
 ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
   geom_jitter(alpha = 0.01) +
-  geom_smooth()
+  geom_smooth(method = "lm")
 
 df_arbeit_zeit_sum %>%
   mutate(arbeit_zeit_sum = pmin(100, pmax(20, floor(arbeit_zeit_sum/10)*10))) %>%
