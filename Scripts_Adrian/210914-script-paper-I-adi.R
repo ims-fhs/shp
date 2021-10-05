@@ -407,6 +407,32 @@ xx <- barplot(dep_correaltion["ermuedung",], las = 2, ylim = c(-0.4,1.2),
 text(xx, text_pos_y, labels= round(dep_correaltion["ermuedung",], 2))
 
 
+# Zusatzauswertungen Lebenslage > Ermüdung
+
+ggplot(df_clustered, aes(einschraenkung_weg_ges_zustand, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", formula = y ~ log(x+1)) +
+  labs(
+    x = "Gesundheitliche Einschränkungen",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit der gesundheitlichen Einschränkungen",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+
+ggplot(df_clustered, aes(alter, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", formula = y ~ poly(x, 2)) +
+  labs(
+    x = "Alter",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit des Alters",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+
 # 2) OLS A+L>D ------------------------------------------------------------
 
 df_ols2 <- df_clustered
@@ -509,6 +535,42 @@ stargazer(ols2,
 
 # 2) Zusatzfragen A > D
 
+# Zusatzauswertungen Lebenslage > Ermüdung
+
+ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", method = "lm") +
+  labs(
+    x = "Wochenstunden",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit der Wochenstunden",
+    subtitle = "Lineares Modell zeigt einen klaren Trend"
+  ) +
+  theme_bw()
+
+ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", method = "gam") +
+  labs(
+    x = "Wochenstunden",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit der Wochenstunden",
+    subtitle = "Wird ein Spline gefitted zeigen sich mehr Nuancen"
+  ) +
+  theme_bw()
+
+
+ggplot(df_ols2, aes(alter, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", formula = y ~ poly(x, 2)) +
+  labs(
+    x = "Alter",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit des Alters",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
 ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth()
@@ -565,8 +627,25 @@ stargazer(ols3,
           column.labels=c("all"),
           df=FALSE, digits=4)
 
+# Analyse Pooled FE A+L+C>D
+fe3 <- plm(ermuedung ~
+              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+              arbeit_qualifikation + arbeit_zeit_wochenstunden +
+              arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
+              arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
+              hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
+            data = df_ols3, index = c("id","year"), model="within")
+
+
+stargazer(fe3,
+          title="FE A+L+C>D", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
 # 3) Zusatzfragen
-# Erwerbs+ Hausarbeit > ermuedung
+# Erwerbs + Hausarbeit > ermuedung
 
 df_arbeit_zeit_sum <- df_ols3 %>%
   mutate(arbeit_zeit_sum = arbeit_zeit_wochenstunden + hausarbeit_wochenstunden) %>%
@@ -575,16 +654,42 @@ df_arbeit_zeit_sum <- df_ols3 %>%
 df_arbeit_zeit_sum %>% slice_max(arbeit_zeit_sum)
 df_arbeit_zeit_sum %>% slice_min(arbeit_zeit_sum)
 
+ggplot(df_ols3, aes(hausarbeit_wochenstunden, ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth(method = "lm")
 
 ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
   geom_jitter(alpha = 0.01) +
-  geom_smooth(method = "lm")
+  geom_smooth(method = "gam")
 
 df_arbeit_zeit_sum %>%
   mutate(arbeit_zeit_sum = pmin(100, pmax(20, floor(arbeit_zeit_sum/10)*10))) %>%
   group_by(arbeit_zeit_sum) %>%
   summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
 
+ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", method = "lm") +
+  labs(
+    x = "Summe Erwerbs- und Carearbeit (Wochenstunden)",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit der Gesamtarbeitszeit (Erwerb- und Sorgearbeit)",
+    subtitle = "Lineares Modell zeigt einen klaren Trend"
+  ) +
+  xlim(0, 80 ) +
+  theme_bw()
+
+ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
+  geom_jitter(alpha = .01) +
+  geom_smooth(color = "black", method = "gam") +
+  labs(
+    x = "Summe Erwerbs- und Carearbeit (Wochenstunden)",
+    y = "Erschöpfung",
+    title = "Erschöpfung in Abhängigkeit der Gesamtarbeitszeit (Erwerb- und Sorgearbeit)",
+    subtitle = "Wird ein Spline gefitted zeigen sich mehr Nuancen"
+  ) +
+  xlim(0, 80 ) +
+  theme_bw()
 
 # 4) Die Verläufe
 
