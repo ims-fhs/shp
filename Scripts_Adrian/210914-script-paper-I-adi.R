@@ -80,9 +80,9 @@ sample <- sample %>% mutate(
     pflege_extern == 1 & !(pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 1,
     pflege_extern == 1 & (pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 2)
 )
-table(sample$pflege_angehoerige, useNA = "ifany")
-sample$pflege_angehoerige <- factor(sample$pflege_angehoerige, levels = c(1,2), labels = c("Keine Pflege", "Pflege"))
-table(sample$pflege_angehoerige, useNA = "ifany")
+# table(sample$pflege_angehoerige, useNA = "ifany")
+# sample$pflege_angehoerige <- factor(sample$pflege_angehoerige, levels = c(1,2), labels = c("Keine Pflege", "Pflege"))
+# table(sample$pflege_angehoerige, useNA = "ifany")
 
 
 #kml-Shape ------------------------------------------------------------------
@@ -132,11 +132,8 @@ colnames(df_labeled) <- c("id","cluster")
 df_clustered <- right_join(sample, df_labeled, by = "id")
 (df_clustered[c(1,2,3,39)])
 
+# 0) Fertig recodieren ---------------------------------------------------------
 
-
-# 1) OLS: L>D --------------------------------------------------------------
-
-### Pooled OLS Variableset 1
 df_clustered$cluster <- as.numeric(df_clustered$cluster)
 
 # Partnerschaft recodieren
@@ -178,42 +175,101 @@ table(df_clustered$tod_person, useNA = "ifany")
 hist(log(df_clustered$haushaltsaequivalenzeinkommen))
 df_clustered$haushaltsaequivalenzeinkommen <- log(df_clustered$haushaltsaequivalenzeinkommen)
 
-ols1 <- plm(ermuedung ~
-      ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
-      einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-      partnerschaft + tod_person,
-    data = df_clustered, index = c("id","year"), model="pooling")
+
+# arbeit_qualifikation recodieren
+table(df_clustered$arbeit_qualifikation, useNA = "ifany")
+df_clustered <- df_clustered %>%
+  mutate(arbeit_qualifikation = case_when(
+    arbeit_qualifikation %in% c(1,3,4) ~ 1,
+    arbeit_qualifikation == 2 ~ 2))
+df_clustered$arbeit_qualifikation <- factor(df_clustered$arbeit_qualifikation, levels = c(1,2), labels = c("Unpassend", "Passend"))
+table(df_clustered$arbeit_qualifikation, useNA = "ifany")
+
+# # arbeit_qualifikation recodieren
+# table(df_clustered$arbeit_qualifikation, useNA = "ifany")
+# df_clustered <- df_clustered %>%
+#   mutate(arbeit_qualifikation = case_when(
+#     arbeit_qualifikation == 2 ~ 1,
+#     arbeit_qualifikation == 1 ~ 3,
+#     arbeit_qualifikation == 4 ~ 2,
+#     arbeit_qualifikation == 3 ~ 4))
+# df_clustered$arbeit_qualifikation <- factor(df_clustered$arbeit_qualifikation, levels = c(1, 2, 3, 4), labels = c("Passend", "Nicht", "Unterqualifiziert", "Ueberqualifiziert"))
+# table(df_clustered$arbeit_qualifikation, useNA = "ifany")
 
 
-stargazer(ols1,
-          title="Pooled OLS L>D", type="text",
-          column.labels=c("all"),
-          df=FALSE, digits=4)
-
-df_clustered_norm <- normalize(df_clustered, method = "range", range = c(0, 1))
-
-ols1_norm <- plm(ermuedung ~
-                   ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
-                   einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-                   partnerschaft + tod_person,
-                 data = df_clustered_norm, index = c("id","year"), model="pooling")
-
-
-stargazer(ols1_norm,
-          title="Pooled OLS VS1", type="text",
-          column.labels=c("all"),
-          df=FALSE, digits=4)
-
-# ggplot(df_clustered, aes(partnerschaft, ermuedung)) +
+# Arbeitsstunden pro Woche recodieren
+# ggplot(df_clustered, aes(arbeit_zeit_wochenstunden, ermuedung)) +
 #   geom_jitter(alpha = 0.01) +
 #   geom_smooth(method = lm)
 #
-# ggplot(df_clustered_norm) +
-#   geom_jitter(aes(x = partnerschaft, y = ermuedung), na.rm = TRUE, alpha = 0.01) +
-#   geom_smooth(aes(x = partnerschaft, y = ermuedung), na.rm = TRUE, method = lm)
 #
+# table(df_clustered$arbeit_zeit_wochenstunden, useNA = "ifany")
+# df_clustered <- df_clustered %>%
+#   mutate(arbeit_zeit_wochenstunden = case_when(
+#     arbeit_zeit_wochenstunden < 20 ~ 3,
+#     arbeit_zeit_wochenstunden < 50 ~ 1,
+#     arbeit_zeit_wochenstunden >= 50 ~ 2))
+# df_clustered$arbeit_zeit_wochenstunden <- factor(df_clustered$arbeit_zeit_wochenstunden, levels = c(1,2,3), labels = c("Normal", "Workaholic", "Kaum"))
+# table(df_clustered$arbeit_zeit_wochenstunden, useNA = "ifany")
 
-# 1) Zusatzauswertungen EDA
+# arbeit_zeit_nacht recodieren
+table(df_clustered$arbeit_zeit_nacht, useNA = "ifany")
+df_clustered <- df_clustered %>%
+  mutate(arbeit_zeit_nacht = case_when(
+    arbeit_zeit_nacht == 1 ~ 2,
+    arbeit_zeit_nacht == 2 ~ 1))
+df_clustered$arbeit_zeit_nacht <- factor(df_clustered$arbeit_zeit_nacht, levels = c(1,2), labels = c("Nein", "Ja"))
+table(df_clustered$arbeit_zeit_nacht, useNA = "ifany")
+
+# ggplot(df_clustered %>% drop_na, aes(arbeit_zeit_nacht, ermuedung)) +
+#   geom_boxplot() +
+#   geom_smooth()
+
+# stargazer(plm(ermuedung ~
+#                 arbeit_zeit_nacht,
+#               data = df_clustered, index = c("id","year"), model="pooling"),
+#           title="arbeit_zeit_nacht", type="text",
+#           column.labels=c("all"),
+#           df=FALSE, digits=4)
+
+
+# Wochenendarbeit recodieren
+# table(df_clustered$arbeit_zeit_wochenende, useNA = "ifany")
+# df_clustered$arbeit_zeit_wochenende <- factor(df_clustered$arbeit_zeit_wochenende, levels = c(1,2), labels = c("Ja", "Nein"))
+# table(df_clustered$arbeit_zeit_wochenende, useNA = "ifany")
+# -> Entscheid 21.4.; Nicht berücksichtigen, hat keinen Effekt
+
+# Arbeitsablauf/Arbeitintensität
+table(df_clustered$arbeit_intensitaet, useNA = "ifany")
+
+# Soziale Beziehungen zu den Kollegen
+table(df_clustered$arbeit_zufriedenheit_atmosphaere, useNA = "ifany")
+
+# Hausarbeitsstunden
+table(df_clustered$hausarbeit_wochenstunden, useNA = "ifany")
+
+# Kinderbetreuung
+table(df_clustered$kinder_betreuung, useNA = "ifany")
+df_clustered <- df_clustered %>%
+  mutate(kinder_betreuung = case_when(
+    kinder_betreuung == 0 ~ 1,
+    kinder_betreuung %in% c(1,2) ~ 2))
+df_clustered$kinder_betreuung <- factor(df_clustered$kinder_betreuung, levels = c(1,2), labels = c("Nein", "Ja"))
+# df_clustered$kinder_betreuung <- factor(df_clustered$kinder_betreuung, levels = c(0,1,2), labels = c("Keine Kinderbetreuung", "Geteilte Kinderbetreuung", "Alleinerziehend"))
+table(df_clustered$kinder_betreuung, useNA = "ifany")
+
+# stargazer(plm(ermuedung ~
+#                 kinder_betreuung,
+#               data = df_clustered, index = c("id","year"), model="within"),
+#           title="Kinderbetreuung", type="text",
+#           column.labels=c("all"),
+#           df=FALSE, digits=4)
+
+
+# Pflege von Angehörigen
+table(df_clustered$pflege_angehoerige, useNA = "ifany")
+
+# 1) Die Variable Erschöpfung im SHP--------------------------------------------
 
 # Nehmen ermuedungen über die Jahre zu?
 
@@ -251,44 +307,37 @@ ggplot(df_clustered, aes(year + 2000, ermuedung)) +
   ) +
   theme_bw()
 
-ggplot(df_clustered, aes(year + 2000, ermuedung)) +
-  geom_jitter(alpha = 0.001) +
-  geom_smooth()
+# ggplot(df_clustered, aes(year + 2000, ermuedung)) +
+#   geom_jitter(alpha = 0.001) +
+#   geom_smooth()
+#
+# ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
+#   geom_boxplot()
+#
+# ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
+#   geom_violin(group = as.factor(year)) +
+#   theme_bw()
+#
+#
+#
+# df_clustered %>%
+#   group_by(year) %>%
+#   summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
+#
+# df_clustered %>%
+#   mutate(alter = floor(alter/10)*10) %>%
+#   group_by(alter) %>%
+#   summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
+#
+# df_clustered %>%
+#   mutate(alter = floor(alter/10)*10) %>%
+#   group_by(year, alter) %>%
+#   summarise(ermuedung = mean(ermuedung, na.rm = TRUE)) %>%
+#   filter(year %in% c(4, 5, 18, 19))
+#
 
-ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
-  geom_boxplot()
 
-ggplot(df_clustered, aes(year + 2000, ermuedung, group = as.factor(year))) +
-  geom_violin(group = as.factor(year)) +
-  theme_bw()
-
-
-
-df_clustered %>%
-  group_by(year) %>%
-  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
-
-df_clustered %>%
-  mutate(alter = floor(alter/10)*10) %>%
-  group_by(alter) %>%
-  summarise(ermuedung = mean(ermuedung, na.rm = TRUE))
-
-df_clustered %>%
-  mutate(alter = floor(alter/10)*10) %>%
-  group_by(year, alter) %>%
-  summarise(ermuedung = mean(ermuedung, na.rm = TRUE)) %>%
-  filter(year %in% c(4, 5, 18, 19))
-
-ols1_b <- plm(ermuedung ~
-              alter + alter_2 + year,
-            data = df_clustered, index = c("id"), model="pooling")
-
-stargazer(ols1_b,
-          title="Pooled OLS L>D", type="text",
-          column.labels=c("all"),
-          df=FALSE, digits=4)
-
-# Verändert sich die Arbeitswelt?
+# 2) Verändert sich die Arbeitswelt?--------------------------------------------
 
 df_clustered %>%
   group_by(year) %>%
@@ -377,35 +426,6 @@ ggplot(df_clustered, aes(year + 2000, abschalten_nach_arbeit)) +
   ) +
   theme_bw()
 
-df_dep_cov <- df_clustered %>%
-  select(ermuedung, ausbildung, alter, geschlecht, ch_nationalitaet,
-                                        einschraenkung_weg_ges_zustand, haushaltsaequivalenzeinkommen,
-                                        partnerschaft, tod_person) %>%
-  mutate(across(where(is.factor), as.numeric))
-
-
-# Korrelationsmatrizen von Michi
-dep_covariance <- var(df_dep_cov, na.rm = TRUE, use = "pairwise.complete.obs") # calculate variances & covariances
-dep_correaltion <- cov2cor(dep_covariance)
-corrplot::corrplot(dep_correaltion, method = "square", cl.pos = "r",
-                   tl.col = "black")
-
-# Korrelation ermuedung mit allen anderen
-col2 <- colorRampPalette(c("#67001F", "#B2182B", "#D6604D", "#F4A582",
-                           "#FDDBC7", "#FFFFFF", "#D1E5F0", "#92C5DE",
-                           "#4393C3", "#2166AC", "#053061"))
-my_colors <- col2(201)
-my_colors <- my_colors[101 + round(100*dep_correaltion["ermuedung",])]
-text_pos_y <- ifelse(dep_correaltion["ermuedung",] > 0,
-                     yes = dep_correaltion["ermuedung",] + 0.1,
-                     dep_correaltion["ermuedung",] - 0.1)
-
-par(mar = c(15, 4, 4, 2) + 0.1)
-xx <- barplot(dep_correaltion["ermuedung",], las = 2, ylim = c(-0.4,1.2),
-              main = "Korrelation anderer numerischer Varibeln mit `ermuedung`",
-              col = my_colors)
-text(xx, text_pos_y, labels= round(dep_correaltion["ermuedung",], 2))
-
 
 # Zusatzauswertungen Lebenslage > Ermüdung
 
@@ -433,111 +453,68 @@ ggplot(df_clustered, aes(alter, ermuedung)) +
   theme_bw()
 
 
-# 2) OLS A+L>D ------------------------------------------------------------
 
-df_ols2 <- df_clustered
-rm(list=setdiff(ls(), "df_ols2"))
+# 3) A>E (OLS, FE, Normalized..)------------------------------------------------
+
 
 # einbezug entscheidungen recodieren
-table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
-df_ols2 <- df_ols2 %>%
+table(df_clustered$arbeit_einbezug_entscheidungen, useNA = "ifany")
+df_clustered <- df_clustered %>%
   mutate(arbeit_einbezug_entscheidungen = case_when(
     arbeit_einbezug_entscheidungen %in% c(2,3) ~ 1,
     arbeit_einbezug_entscheidungen == 1 ~ 2))
-df_ols2$arbeit_einbezug_entscheidungen <- factor(df_ols2$arbeit_einbezug_entscheidungen, levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
-table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
-
-# arbeit_qualifikation recodieren
-table(df_ols2$arbeit_qualifikation, useNA = "ifany")
-df_ols2 <- df_ols2 %>%
-  mutate(arbeit_qualifikation = case_when(
-    arbeit_qualifikation %in% c(1,3,4) ~ 1,
-    arbeit_qualifikation == 2 ~ 2))
-df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation, levels = c(1,2), labels = c("Unpassend", "Passend"))
-table(df_ols2$arbeit_qualifikation, useNA = "ifany")
-
-# # arbeit_qualifikation recodieren
-# table(df_ols2$arbeit_qualifikation, useNA = "ifany")
-# df_ols2 <- df_ols2 %>%
-#   mutate(arbeit_qualifikation = case_when(
-#     arbeit_qualifikation == 2 ~ 1,
-#     arbeit_qualifikation == 1 ~ 3,
-#     arbeit_qualifikation == 4 ~ 2,
-#     arbeit_qualifikation == 3 ~ 4))
-# df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation, levels = c(1, 2, 3, 4), labels = c("Passend", "Nicht", "Unterqualifiziert", "Ueberqualifiziert"))
-# table(df_ols2$arbeit_qualifikation, useNA = "ifany")
+df_clustered$arbeit_einbezug_entscheidungen <- factor(df_clustered$arbeit_einbezug_entscheidungen, levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
+table(df_clustered$arbeit_einbezug_entscheidungen, useNA = "ifany")
 
 
-# Arbeitsstunden pro Woche recodieren
-# ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
-#   geom_jitter(alpha = 0.01) +
-#   geom_smooth(method = lm)
-#
-#
-# table(df_ols2$arbeit_zeit_wochenstunden, useNA = "ifany")
-# df_ols2 <- df_ols2 %>%
-#   mutate(arbeit_zeit_wochenstunden = case_when(
-#     arbeit_zeit_wochenstunden < 20 ~ 3,
-#     arbeit_zeit_wochenstunden < 50 ~ 1,
-#     arbeit_zeit_wochenstunden >= 50 ~ 2))
-# df_ols2$arbeit_zeit_wochenstunden <- factor(df_ols2$arbeit_zeit_wochenstunden, levels = c(1,2,3), labels = c("Normal", "Workaholic", "Kaum"))
-# table(df_ols2$arbeit_zeit_wochenstunden, useNA = "ifany")
+df_ae <- df_clustered
+rm(list = setdiff(ls(), "df_ae"))
+df_ae_norm <- normalize(df_ae, method = "range", range = c(0, 1))
 
-# arbeit_zeit_nacht recodieren
-table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
-df_ols2 <- df_ols2 %>%
-  mutate(arbeit_zeit_nacht = case_when(
-    arbeit_zeit_nacht == 1 ~ 2,
-    arbeit_zeit_nacht == 2 ~ 1))
-df_ols2$arbeit_zeit_nacht <- factor(df_ols2$arbeit_zeit_nacht, levels = c(1,2), labels = c("Nein", "Ja"))
-table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
-
-# ggplot(df_ols2 %>% drop_na, aes(arbeit_zeit_nacht, ermuedung)) +
-#   geom_boxplot() +
-#   geom_smooth()
-
-# stargazer(plm(ermuedung ~
-#                 arbeit_zeit_nacht,
-#               data = df_ols2, index = c("id","year"), model="pooling"),
-#           title="arbeit_zeit_nacht", type="text",
-#           column.labels=c("all"),
-#           df=FALSE, digits=4)
-
-
-# Wochenendarbeit recodieren
-# table(df_ols2$arbeit_zeit_wochenende, useNA = "ifany")
-# df_ols2$arbeit_zeit_wochenende <- factor(df_ols2$arbeit_zeit_wochenende, levels = c(1,2), labels = c("Ja", "Nein"))
-# table(df_ols2$arbeit_zeit_wochenende, useNA = "ifany")
-# -> Entscheid 21.4.; Nicht berücksichtigen, hat keinen Effekt
-
-# Arbeitsablauf/Arbeitintensität
-table(df_ols2$arbeit_intensitaet, useNA = "ifany")
-
-# Soziale Beziehungen zu den Kollegen
-table(df_ols2$arbeit_zufriedenheit_atmosphaere, useNA = "ifany")
-
-
-ols2 <- plm(ermuedung ~
-              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
-              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+ols_ae_1 <- plm(ermuedung ~
+              arbeit_einbezug_entscheidungen +
               arbeit_qualifikation + arbeit_zeit_wochenstunden +
               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere,
-            data = df_ols2, index = c("id","year"), model="pooling")
+            data = df_ae_norm, index = c("id","year"), model="pooling")
 
 
-stargazer(ols2,
-          title="Pooled OLS A+L>D", type="text",
+stargazer(ols_ae_1,
+          title="Pooled OLS A>E", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
+fe_ae_1 <- plm(ermuedung ~
+                  arbeit_einbezug_entscheidungen +
+                  arbeit_qualifikation + arbeit_zeit_wochenstunden +
+                  arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
+                  arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere,
+                data = df_ae_norm, index = c("id","year"), model="within")
+
+
+stargazer(fe_ae_1,
+          title="FE A>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
 
 
-# 2) Zusatzfragen A > D
+ggplot(df_ae, aes(x = arbeit_intensitaet, y = ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+
+ggplot(df_ae, aes(x = arbeit_zufriedenheit_atmosphaere, y = ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+
+ggplot(df_ae, aes(x = arbeit_zeit_wochenstunden, y = ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+
+# 2.1) Zusatzfragen A > E ------------------------------------------------------
 
 # Zusatzauswertungen Lebenslage > Ermüdung
 
-ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
+ggplot(df_ae, aes(arbeit_zeit_wochenstunden, ermuedung)) +
   geom_jitter(alpha = .01) +
   geom_smooth(color = "black", method = "lm") +
   labs(
@@ -548,7 +525,7 @@ ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
   ) +
   theme_bw()
 
-ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
+ggplot(df_ae, aes(arbeit_zeit_wochenstunden, ermuedung)) +
   geom_jitter(alpha = .01) +
   geom_smooth(color = "black", method = "gam") +
   labs(
@@ -558,6 +535,32 @@ ggplot(df_ols2, aes(arbeit_zeit_wochenstunden, ermuedung)) +
     subtitle = "Wird ein Spline gefitted zeigen sich mehr Nuancen"
   ) +
   theme_bw()
+
+# 2) A+L>D ------------------------------------------------------------
+
+
+df_ale <- df_ae
+rm(list = setdiff(ls(), "df_ale"))
+df_ale_norm <- normalize(df_ale, method = "range", range = c(0, 1))
+
+
+ols_ale <- plm(ermuedung ~
+              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+              arbeit_qualifikation + arbeit_zeit_wochenstunden +
+              arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
+              arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere,
+            data = df_ale_norm, index = c("id","year"), model="pooling")
+
+
+stargazer(ols_ale,
+          title="Pooled OLS A+L>E", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
+
+
 
 
 ggplot(df_ols2, aes(alter, ermuedung)) +
@@ -584,34 +587,14 @@ df_ols2 %>%
 
 # 3) OLS A+L+C>D ----------------------------------------------------------
 
-df_ols3 <- df_ols2
-
-# Hausarbeitsstunden
-table(df_ols3$hausarbeit_wochenstunden, useNA = "ifany")
-
-# Kinderbetreuung
-table(df_ols3$kinder_betreuung, useNA = "ifany")
-df_ols3 <- df_ols3 %>%
-  mutate(kinder_betreuung = case_when(
-    kinder_betreuung == 0 ~ 1,
-    kinder_betreuung %in% c(1,2) ~ 2))
-df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(1,2), labels = c("Nein", "Ja"))
-# df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(0,1,2), labels = c("Keine Kinderbetreuung", "Geteilte Kinderbetreuung", "Alleinerziehend"))
-table(df_ols3$kinder_betreuung, useNA = "ifany")
-
-# stargazer(plm(ermuedung ~
-#                 kinder_betreuung,
-#               data = df_ols3, index = c("id","year"), model="within"),
-#           title="Kinderbetreuung", type="text",
-#           column.labels=c("all"),
-#           df=FALSE, digits=4)
+df_alce <- df_ale
+rm(list = setdiff(ls(), "df_alce"))
+df_alce_norm <- normalize(df_alce, method = "range", range = c(0, 1))
 
 
-# Pflege von Angehörigen
-table(df_ols3$pflege_angehoerige, useNA = "ifany")
 
 # Analyse Pooled OLS A+L+C>D
-ols3 <- plm(ermuedung ~
+ols_alce <- plm(ermuedung ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -619,16 +602,16 @@ ols3 <- plm(ermuedung ~
               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
               hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
-          data = df_ols3, index = c("id","year"), model="pooling")
+          data = df_alce_norm, index = c("id","year"), model="pooling")
 
 
-stargazer(ols3,
-          title="Pooled OLS A+L+C>D", type="text",
+stargazer(ols_alce,
+          title="Pooled OLS A+L+C>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# Analyse Pooled FE A+L+C>D
-fe3 <- plm(ermuedung ~
+# Analyse FE A+L+C>E
+fe_alce <- plm(ermuedung ~
               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
@@ -636,25 +619,26 @@ fe3 <- plm(ermuedung ~
               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
               hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
-            data = df_ols3, index = c("id","year"), model="within")
+            data = df_alce, index = c("id","year"), model="within")
 
 
-stargazer(fe3,
-          title="FE A+L+C>D", type="text",
+stargazer(fe_alce,
+          title="FE A+L+C>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
 
-# 3) Zusatzfragen
+
+# 3.1) Zusatzfragen -----------------------------------------------
 # Erwerbs + Hausarbeit > ermuedung
 
-df_arbeit_zeit_sum <- df_ols3 %>%
+df_arbeit_zeit_sum <- df_alce %>%
   mutate(arbeit_zeit_sum = arbeit_zeit_wochenstunden + hausarbeit_wochenstunden) %>%
   select(id, year, ermuedung, arbeit_zeit_sum)
 
 df_arbeit_zeit_sum %>% slice_max(arbeit_zeit_sum)
 df_arbeit_zeit_sum %>% slice_min(arbeit_zeit_sum)
 
-ggplot(df_ols3, aes(hausarbeit_wochenstunden, ermuedung)) +
+ggplot(df_alce, aes(hausarbeit_wochenstunden, ermuedung)) +
   geom_jitter(alpha = 0.01) +
   geom_smooth(method = "lm")
 
@@ -691,18 +675,40 @@ ggplot(df_arbeit_zeit_sum, aes(arbeit_zeit_sum, ermuedung)) +
   xlim(0, 80 ) +
   theme_bw()
 
-# 4) Die Verläufe
+# 3.2) Ist die Doppelbelastung entscheidend? -----------------------
 
-df_ols3 %>%
+df_doppel <- df_alce
+df_doppel <- df_doppel %>%
+  mutate(arbeit_zeit_sum = arbeit_zeit_wochenstunden + hausarbeit_wochenstunden) %>%
+  mutate(anteil_ha = hausarbeit_wochenstunden/arbeit_zeit_sum)
+
+ggplot(df_doppel, aes(x = anteil_ha, y = ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth()
+
+ggplot(df_doppel,
+       aes(x = arbeit_zeit_wochenstunden, y = hausarbeit_wochenstunden)) +
+  geom_jitter(alpha = 0.01) +
+  facet_wrap(~geschlecht)
+
+ggplot(df_doppel, aes(x = arbeit_zeit_sum, y = ermuedung)) +
+  geom_jitter(alpha = 0.01) +
+  geom_smooth() +
+  facet_wrap(~geschlecht)
+
+
+# 4) Die Verläufe --------------------------------------------------------------
+
+df_alce %>%
   group_by(cluster, geschlecht) %>%
   summarise(n = n()) %>%
   mutate(freq = n / sum(n))
 
-df_ols3 %>%
+df_alce %>%
   group_by(cluster) %>%
   summarise(arbeit_intensitaet = mean(arbeit_intensitaet, na.rm = TRUE))
 
-ggplot(df_ols3, aes(x=as.factor(cluster), y=arbeit_intensitaet)) +
+ggplot(df_alce, aes(x=as.factor(cluster), y=arbeit_intensitaet)) +
   geom_boxplot()
 
 
