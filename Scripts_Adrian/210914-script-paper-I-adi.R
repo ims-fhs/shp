@@ -456,6 +456,9 @@ ggplot(df_clustered, aes(alter, ermuedung)) +
 
 # 3) A>E (OLS, FE, Normalized..)------------------------------------------------
 
+# cp
+
+cp <- c("#8BB148", "#6C4E90", "#B03B3E")
 
 # einbezug entscheidungen recodieren
 table(df_clustered$arbeit_einbezug_entscheidungen, useNA = "ifany")
@@ -483,6 +486,25 @@ stargazer(ols_ae_1,
           title="Pooled OLS A>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
+
+# forest plot
+df_fp <- data.frame(
+  label = row.names(coef(summary(ols_ae_1))),
+  mean = as.numeric(coef(summary(ols_ae_1))[,1]),
+  lower = as.numeric(coef(summary(ols_ae_1))[,1] + coef(summary(ols_ae_1))[,2]),
+  upper = as.numeric(coef(summary(ols_ae_1))[,1] - coef(summary(ols_ae_1))[,2])
+)
+
+ggplot(df_fp) +
+  geom_pointrange(aes(x=mean, y=label, xmin=upper, xmax=lower), color = c("black", rep(cp[1],7))) +
+  labs(
+    x = "Normalisierte Regressionskoeffizienten",
+    y = "Variablen",
+    title = "Erschöpfung in Abhängigkeit der Arbeitsvariablen",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
 
 fe_ae_1 <- plm(ermuedung ~
                   arbeit_einbezug_entscheidungen +
@@ -540,14 +562,14 @@ ggplot(df_ae, aes(arbeit_zeit_wochenstunden, ermuedung)) +
 
 
 df_ale <- df_ae
-rm(list = setdiff(ls(), "df_ale"))
+rm(list = setdiff(ls(), c("df_ale", "cp")))
+
 df_ale_norm <- normalize(df_ale, method = "range", range = c(0, 1))
 
 
 ols_ale <- plm(ermuedung ~
-              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              ausbildung + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
               arbeit_qualifikation + arbeit_zeit_wochenstunden +
               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere,
@@ -560,6 +582,23 @@ stargazer(ols_ale,
           df=FALSE, digits=4)
 
 
+# forest plot
+df_fp <- data.frame(
+  label = row.names(coef(summary(ols_ale))),
+  mean = as.numeric(coef(summary(ols_ale))[,1]),
+  lower = as.numeric(coef(summary(ols_ale))[,1] + coef(summary(ols_ale))[,2]),
+  upper = as.numeric(coef(summary(ols_ale))[,1] - coef(summary(ols_ale))[,2])
+)
+
+ggplot(df_fp) +
+  geom_pointrange(aes(x=mean, y=label, xmin=upper, xmax=lower), color = c("black", rep(cp[2], 7), rep(cp[1], 6))) +
+  labs(
+    x = "Normalisierte Regressionskoeffizienten",
+    y = "Variablen",
+    title = "Erschöpfung in Abhängigkeit der Arbeits- und Lebensvariablen",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
 
 
 
@@ -588,16 +627,15 @@ df_ols2 %>%
 # 3) OLS A+L+C>D ----------------------------------------------------------
 
 df_alce <- df_ale
-rm(list = setdiff(ls(), "df_alce"))
+rm(list = setdiff(ls(), c("df_alce", "cp")))
 df_alce_norm <- normalize(df_alce, method = "range", range = c(0, 1))
 
 
 
 # Analyse Pooled OLS A+L+C>D
 ols_alce <- plm(ermuedung ~
-              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              ausbildung + geschlecht + ch_nationalitaet +
               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
               arbeit_qualifikation + arbeit_zeit_wochenstunden +
               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
@@ -609,6 +647,27 @@ stargazer(ols_alce,
           title="Pooled OLS A+L+C>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
+
+# forest plot
+df_fp <- data.frame(
+  label = as_factor(row.names(coef(summary(ols_alce)))),
+  mean = as.numeric(coef(summary(ols_alce))[,1]),
+  lower = as.numeric(coef(summary(ols_alce))[,1] + coef(summary(ols_alce))[,2]),
+  upper = as.numeric(coef(summary(ols_alce))[,1] - coef(summary(ols_alce))[,2]),
+  color = c("black", rep(cp[2], 7), rep(cp[1], 6), rep(cp[3], 3))
+)
+
+ggplot(df_fp) +
+  geom_pointrange(aes(x=mean, y=label, xmin=upper, xmax=lower), color = c("black", rep(cp[2], 7), rep(cp[1], 6), rep(cp[3], 3))) +
+  labs(
+    x = "Normalisierte Regressionskoeffizienten",
+    y = "Variablen",
+    title = "Erschöpfung in Abhängigkeit der Arbeits-, Sorge- und Lebensvariablen",
+    subtitle = "Pooled OLS, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
+
+
 
 # Analyse FE A+L+C>E
 fe_alce <- plm(ermuedung ~
