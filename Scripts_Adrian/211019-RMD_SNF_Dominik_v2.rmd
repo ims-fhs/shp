@@ -1,0 +1,541 @@
+---
+title: "SNF_Dominik"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# Basics: Packages and Import ---------------------------------------------
+# imsbasics::clc()
+library(tidyverse)
+library(kml)
+#install.packages('GGally')
+library(GGally)
+library(plm)
+#install.packages('stargazer')
+library(stargazer)
+#install.packages('BBmisc')
+library(BBmisc)
+#install.packages("REEMtree")
+library(REEMtree)
+#install.packages("rattle")
+library(rattle)
+library(knitr)
+library(ggpubr)
+library(groupdata2)
+library(naivebayes)
+
+load("../data/df_long.R")
+
+assertthat::assert_that(nrow(df_long) == 225296)
+assertthat::assert_that(ncol(df_long) == 36)
+# df_long <- df_long %>% select_if(~sum(!is.na(.)) > 0)
+
+
+colnames(df_long) <- c("id",
+                       "year",
+                       "ermuedung",
+                       "arbeit_zeit_wochenstunden",
+                       "arbeit_zeit_wochenstunden_vereinbart",
+                       "arbeit_zeit_wochenende",
+                       "arbeit_zeit_nacht",
+                       "arbeit_zeit_art",
+                       "arbeit_qualifikation",
+                       "arbeit_intensitaet",
+                       "arbeit_einbezug_entscheidungen",
+                       "arbeit_zufriedenheit_atmosphaere",
+                       "hausarbeit_wochenstunden",
+                       "beeintraechtigung_arbeit_privat",
+                       "abschalten_nach_arbeit",
+                       "einschraenkung_weg_ges_zustand",
+                       "tage_gesunheits_prob",
+                       "chronische_krankheit",
+                       "ausbildung",
+                       "partnerschaft",
+                       "tod_person",
+                       "person_haushalt",
+                       "migrationshintergrund",
+                       "geschlecht",
+                       "alter",
+                       "status",
+                       "occupa",
+                       "ch_nationalitaet",
+                       "haushaltsaequivalenzeinkommen",
+                       "kinder_betreuung",
+                       "pflege_extern",
+                       "pflege_extern_wer1",
+                       "pflege_extern_wer2",
+                       "pflege_extern_wer3",
+                       "pflege_extern_wer4",
+                       "pflege_extern_wer5")
+
+
+sample <- df_long %>%
+  drop_na(alter) %>%
+  filter(alter >= 15) %>%
+  filter(alter <= 65) %>%
+  filter(occupa %in% c(1,2,3,5,6))
+rm(df_long)
+
+sample <- mutate_all(sample, function(x) as.numeric(as.character(x)))
+
+# Ueberstunden ------------------------------------------------------------
+sample <- sample %>% mutate(
+  arbeit_zeit_ueberstunden = arbeit_zeit_wochenstunden - arbeit_zeit_wochenstunden_vereinbart)
+
+# Pflege von Angehoerigen -------------------------------------------------
+sample <- sample %>% mutate(
+  pflege_angehoerige = case_when(
+    pflege_extern == 2 ~ 1,
+    pflege_extern == 1 & !(pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 1,
+    pflege_extern == 1 & (pflege_extern_wer1 == id | pflege_extern_wer2 == id | pflege_extern_wer3 == id | pflege_extern_wer4 == id | pflege_extern_wer5 == id) ~ 2)
+)
+table(sample$pflege_angehoerige, useNA = "ifany")
+sample$pflege_angehoerige <- factor(sample$pflege_angehoerige, levels = c(1,2), labels = c("Keine Pflege", "Pflege"))
+table(sample$pflege_angehoerige, useNA = "ifany")
+```
+
+
+
+## KML Shape
+#### Anzahl Cluster
+
+Auswahl der Anzahl an Cluster, am besten von 2-5
+
+```{r n_cluster, echo=FALSE}
+param_cluster_number <- 5
+
+print(paste("Anzahl Cluster =", param_cluster_number))
+```
+
+
+#### KML Clustering
+```{r kml, error=FALSE, message=FALSE, warning = FALSE, echo=FALSE}
+df_kml <- sample[1:3]
+df_kml <- df_kml %>% drop_na()
+library(kmlShape)
+set.seed(1)
+for (cluster_number in c(param_cluster_number)) {
+
+    kml_cluster_data <- df_kml %>% select(c(id, ermuedung, year)) %>%
+      pivot_wider (names_from = year, values_from = ermuedung)
+    cluster <- cldsWide(data.frame(kml_cluster_data))
+    reduceTraj(cluster, nbSenators = 75, imputationMethod = "linearInterpol")
+
+
+    start_time <- Sys.time()
+    kmlShape(cluster, nbClusters = cluster_number, timeScale = 0.1, FrechetSumOrMax =
+              "max", toPlot="none", parAlgo=parKmlShape(aggregationMethod = "all",  maxIter = 500))
+    end_time <- Sys.time()
+    runtime = end_time - start_time
+    plot(cluster)
+    print("KML-Shape Algortihm")
+    print(runtime)
+    #print(paste0("Cluster number = ", cluster_number, ". Redrawing number = ", redrawing_number))
+
+}
+
+### code to add clusters to the original data
+id_not_na <- as.numeric(1:length(cluster@id))
+unique_id <- unique(df_kml$id)
+labels <- matrix()
+for(i in 1:length(cluster@clusters)){
+  labels[[i]] <- (cluster@clusters[[i]])
+}
+labels <- as.data.frame(labels)
+
+
+real_id_not_na <- list()
+for(i in 1:length(id_not_na)) {
+  real_id_not_na[[i]] <- unique_id[id_not_na[i]]
+}
+real_id_not_na <- do.call(rbind.data.frame, real_id_not_na)
+df_labeled <- cbind(real_id_not_na, labels)
+colnames(df_labeled) <- c("id","cluster")
+
+df_clustered <- right_join(sample, df_labeled, by = "id")
+# (df_clustered[c(1,2,3,39)])
+df_clustered <- df_clustered %>% drop_na(ermuedung)
+```
+
+## Explorative Datenanalyse
+
+Recodierung Variablen "Wochenstunden" und "Überstunden" kategorisch anstatt numerisch, gibt schönere Bereiche anstatt einzelne Werte
+
+```{r change to categorical, include=FALSE}
+df_clustered$arbeit_zeit_wochenstunden <- cut(df_clustered$arbeit_zeit_wochenstunden,
+                                              b = c(0,10,20,30,40,50,60,70,80,90),
+                                              labels=seq(5,85, 10))
+df_clustered$arbeit_zeit_wochenstunden <- as.numeric(as.character(df_clustered$arbeit_zeit_wochenstunden))
+
+df_clustered$arbeit_zeit_ueberstunden <- cut(df_clustered$arbeit_zeit_ueberstunden, 
+                                             b=c(-Inf, -30, -20, -10, 0, 10 , 20, 30, Inf), 
+                                             labels=c(-35,-25,-15, -5, 5, 15, 25, 35))
+df_clustered$arbeit_zeit_ueberstunden <- as.numeric(as.character(df_clustered$arbeit_zeit_ueberstunden))
+
+# split_n_groups <- 10
+# probability <- c(1:split_n_groups) / split_n_groups
+# df_clustered <- df_clustered %>% 
+#   drop_na(arbeit_zeit_wochenstunden) %>% 
+#   mutate(arbeit_zeit_wochenstunden = cut(arbeit_zeit_wochenstunden ,
+#                                               breaks = quantile(arbeit_zeit_wochenstunden,
+#                                                                 c(0,probability[c(1:(split_n_groups-1))],1)),
+#                                               labels = c(1:split_n_groups))) 
+
+```
+
+
+
+
+#### Balance Data
+
+Datenset ausbalancieren so dass in jedem Cluster gleichviel Untersuchungen sind.
+
+
+```{r balance data, echo=FALSE}
+df_clustered$id <- as.factor(df_clustered$id)
+df_clustered %>% group_by(cluster) %>% 
+  count()
+
+
+### down or upsample data to make cluster same size
+### choosed downsample, bc it removes whole id's, upsample just randomly duplicates rows
+df_clustered_equal <- downsample(
+  data = df_clustered,
+  cat_col = "cluster",
+  id_col = "id",
+  id_method = "n_rows_c"
+)
+df_clustered_equal %>% group_by(cluster) %>% 
+  count()
+
+# df_clustered_equal <- upsample(
+#   data = df_clustered,
+#   cat_col = "cluster",
+#   id_col = "id",
+#   id_method = "n_rows_c"
+# )
+```
+
+#### Plots per Variable
+
+```{r plot function, include=FALSE}
+quarterplot <- function(variable) {
+
+  plot_1 <- ggplot(df_clustered, aes_string(x="cluster", y=variable, group="cluster", fill="cluster")) +
+    geom_violin(show.legend = FALSE, lwd=1, color="black") + 
+    geom_boxplot(show.legend = FALSE, width=0.1, lwd=1, color="black") +
+    ggtitle("Violin/Boxplot per Cluster")
+  
+  plot_2 <- ggplot(df_clustered_equal, aes_string(x="cluster", y=variable, group="cluster", fill="cluster")) +
+    geom_violin(show.legend = FALSE, lwd=1, color="black") +
+    geom_boxplot(show.legend = FALSE, width=0.1, lwd=1, color="black") +
+    ggtitle("Violin/Boxplot per Cluster (equalized Data)")
+
+  plot_3 <- ggplot(df_clustered, aes_string(variable, group="cluster", fill="cluster")) +
+    geom_bar(position = "fill", show.legend = FALSE) +
+    ggtitle("Barplot per Cluster")
+
+  plot_4 <- ggplot(df_clustered_equal, aes_string(variable, group="cluster", fill="cluster")) +
+    geom_bar(position = "fill", show.legend = FALSE) +
+    ggtitle("Barplot per Cluster (equalized Data)")
+
+  annotate_figure(ggarrange(plot_1, plot_2, plot_3, plot_4, ncol = 2, nrow = 2), top = text_grob(variable,
+                                        color = "black", size = 20))
+}
+
+```
+
+
+Visueller Vergleich relevanter Variablen auf dem normalen und ausbalancierten Datenset.
+
+- Violin und Boxplot um die Verteilung zu erkennen.
+- Säulendiagramm um das Verhältnis aufzuzeigen.
+
+Bei teils Variablen sieht man grössere Veränderungen der unterschiedlichen Cluster z.B. bei den "Wochenstunden".
+Jedoch, sieht man keine Variable, welche die Cluster "sauber" trennt. 
+
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("ermuedung")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zeit_wochenstunden")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zeit_ueberstunden")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zeit_wochenende")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zeit_nacht")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zeit_art")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_qualifikation")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_intensitaet")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("arbeit_zufriedenheit_atmosphaere")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("beeintraechtigung_arbeit_privat")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("abschalten_nach_arbeit")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("einschraenkung_weg_ges_zustand")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("chronische_krankheit")
+```
+
+<br><br>
+
+```{r , error=FALSE, warning = FALSE, echo=FALSE}
+quarterplot("migrationshintergrund")
+
+```
+
+
+#### Entwicklung der Ermüdung
+
+Folgende Plots sollen aufzeigen, wie sich die Ermüdung über die Jahre der Untersuchungen verteilt.
+
+Fazit: 
+
+- Die durchschnittliche Ermüdung bleibt über die Jahre in etwa gleich.
+- Die Streung (Band berechnet durch Mean +/- Standardabweichung) wird ganz wenig kleiner. Was in diesem Beispiel zur These führen wird, dass sich Ermüdung über die Jahre immer mehr am Mittelwert ansiedelt. Wie man am Violin und Count Plot (Nr. 4) ansieht, die hohe Ermüdung bleibt in etwa gleich, jedoch Fälle mit tiefer Ermüdung nehmen ab.
+
+
+```{r plots ermuedung, echo=FALSE}
+### Data Mean Band
+rib = df_clustered %>% group_by(year) %>% drop_na(ermuedung) %>% summarise(Mean = mean(ermuedung), Std = sd(ermuedung))
+rib = rbind(rib[1,1:3], rib, rib[16,1:3])
+rib[1,1] = 3
+rib[18,1] = 20
+
+ggplot() +
+  geom_jitter(data=df_clustered, aes(year + 2000, ermuedung, group=year), alpha=0.02) +
+  ### Mean Band
+  geom_line(data=rib, aes(year + 2000, Mean)) +
+  geom_ribbon(data=rib, aes(year + 2000, ymin=Mean - Std, ymax=Mean + Std), fill = "black", alpha = 0.3) + 
+  geom_line(data=rib, aes(year + 2000, Mean - Std), color = "black", size = 1) + 
+  geom_line(data=rib, aes(year + 2000, Mean + Std), color = "black", size = 1) +   
+  geom_line(data=rib, aes(year + 2000, Mean), color = "blue", size = 1) +
+  xlim(2003, 2020)
+
+ggplot() +
+  geom_boxplot(data=df_clustered, aes(year + 2000, ermuedung, group=year), alpha=0.02) +
+  ### Mean Band
+  geom_line(data=rib, aes(year + 2000, Mean)) +
+  geom_ribbon(data=rib, aes(year + 2000, ymin=Mean - Std, ymax=Mean + Std), fill = "black", alpha = 0.3) + 
+  geom_line(data=rib, aes(year + 2000, Mean - Std), color = "black", size = 1) + 
+  geom_line(data=rib, aes(year + 2000, Mean + Std), color = "black", size = 1) +   
+  geom_line(data=rib, aes(year + 2000, Mean), color = "blue", size = 1) +
+  xlim(2003, 2020)
+
+ggplot() +
+  geom_count(data=df_clustered, aes(year + 2000, ermuedung, group=year)) +
+  ### Mean Band
+  geom_line(data=rib, aes(year + 2000, Mean)) +
+  geom_ribbon(data=rib, aes(year + 2000, ymin=Mean - Std, ymax=Mean + Std), fill = "black", alpha = 0.3) + 
+  geom_line(data=rib, aes(year + 2000, Mean - Std), color = "black", size = 1) + 
+  geom_line(data=rib, aes(year + 2000, Mean + Std), color = "black", size = 1) +   
+  geom_line(data=rib, aes(year + 2000, Mean), color = "blue", size = 1) +
+  xlim(2003, 2020)
+
+ggplot() +
+  geom_violin(data=df_clustered, aes(year + 2000, ermuedung, group=year)) +
+  geom_count(data=df_clustered, aes(year + 2000, ermuedung, group=year)) +
+  ### Mean Band
+  geom_line(data=rib, aes(year + 2000, Mean)) +
+  geom_ribbon(data=rib, aes(year + 2000, ymin=Mean - Std, ymax=Mean + Std), fill = "black", alpha = 0.3) + 
+  geom_line(data=rib, aes(year + 2000, Mean - Std), color = "black", size = 1) + 
+  geom_line(data=rib, aes(year + 2000, Mean + Std), color = "black", size = 1) +   
+  geom_line(data=rib, aes(year + 2000, Mean), color = "blue", size = 1) +
+  xlim(2003, 2020)
+```
+
+
+
+```{r , include=FALSE}
+df_clustered <- df_clustered_equal
+
+### Pooled OLS Variableset 1
+df_clustered$cluster <- as.numeric(df_clustered$cluster)
+
+# Partnerschaft recodieren
+df_clustered <- df_clustered %>%
+  mutate(partnerschaft = case_when(partnerschaft %in% c(1,2) ~ 1,partnerschaft == 3 ~ 2))
+df_clustered$partnerschaft <- factor(df_clustered$partnerschaft, levels = c(1,2), labels = c("Partnerschaft", "Single"))
+table(df_clustered$partnerschaft, useNA = "ifany")
+
+# Geschlecht recodieren
+df_clustered$geschlecht <- factor(df_clustered$geschlecht, levels = c(1,2), labels = c("Maennlich", "Weiblich"))
+table(df_clustered$geschlecht, useNA = "ifany")
+```
+
+Der folgende Plot zeigt wie sich die Ermüdung über das Alter verteilt. Dabei ist erstaunlich, dass der Mittelwert mit dem Alter ab 60ig Jahren abnimmt. 
+
+```{r , echo=FALSE, warning=FALSE}
+# Alter
+ggplot(df_clustered, aes(alter, ermuedung)) +
+  geom_jitter(alpha = 0.05) +
+  stat_summary(fun.y = mean,
+               fun.ymin = function(x) mean(x) - sd(x), 
+               fun.ymax = function(x) mean(x) + sd(x), 
+               geom = "pointrange", color="blue",size=1, alpha=0.5) +
+  geom_smooth()
+
+df_clustered$alter_2 <- df_clustered$alter^2
+```
+
+
+
+```{r , include=FALSE}
+# Ausbildung recodieren
+table(df_clustered$ausbildung, useNA = "ifany")
+df_clustered <- df_clustered %>%
+  mutate(ausbildung = case_when(ausbildung < 4 ~ 1,
+                                ausbildung < 7 ~ 2,
+                                ausbildung < 10 ~ 3,
+                                ausbildung == 10 ~ 4))
+df_clustered$ausbildung <- factor(df_clustered$ausbildung, levels = c(1,2,3,4),
+                                  labels = c("Tiefer Bildungsstand", "Sekundarstufe II", "Höhere Berufsbildung", "Hochschule"))
+table(df_clustered$ausbildung, useNA = "ifany")
+
+# tod_person recodieren
+table(df_clustered$tod_person, useNA = "ifany")
+df_clustered$tod_person <- factor(df_clustered$tod_person, levels = c(1,2),
+                                  labels = c("Angehoerige Person gestorben", "Keine angehoerige Person gestorben"))
+table(df_clustered$tod_person, useNA = "ifany")
+
+# haushaltsaequivalenzeinkommen
+df_clustered$haushaltsaequivalenzeinkommen <- log(df_clustered$haushaltsaequivalenzeinkommen)
+```
+
+
+
+```{r , include=FALSE}
+df_clustered_norm <- normalize(df_clustered, method = "range", range = c(0, 1))
+
+```
+
+
+```{r , include=FALSE}
+
+df_ols2 <- df_clustered
+# rm(list=setdiff(ls(), "df_ols2"))
+
+# arbeit_einbezug_entscheidungen recodieren
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_einbezug_entscheidungen = case_when(
+    arbeit_einbezug_entscheidungen %in% c(2,3) ~ 1,
+    arbeit_einbezug_entscheidungen == 1 ~ 2))
+df_ols2$arbeit_einbezug_entscheidungen <- factor(df_ols2$arbeit_einbezug_entscheidungen, levels = c(1,2), labels = c("Kein Einbezug", "Entscheidung"))
+table(df_ols2$arbeit_einbezug_entscheidungen, useNA = "ifany")
+
+# arbeit_qualifikation recodieren
+table(df_ols2$arbeit_qualifikation, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_qualifikation = case_when(
+    arbeit_qualifikation %in% c(1,3,4) ~ 1,
+    arbeit_qualifikation == 2 ~ 2))
+df_ols2$arbeit_qualifikation <- factor(df_ols2$arbeit_qualifikation, levels = c(1,2), labels = c("Unpassend", "Passend"))
+table(df_ols2$arbeit_qualifikation, useNA = "ifany")
+
+
+# arbeit_zeit_nacht recodieren
+table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
+df_ols2 <- df_ols2 %>%
+  mutate(arbeit_zeit_nacht = case_when(
+    arbeit_zeit_nacht == 1 ~ 2,
+    arbeit_zeit_nacht == 2 ~ 1))
+df_ols2$arbeit_zeit_nacht <- factor(df_ols2$arbeit_zeit_nacht, levels = c(1,2), labels = c("Nein", "Ja"))
+table(df_ols2$arbeit_zeit_nacht, useNA = "ifany")
+
+# Arbeitsablauf/ArbeitintensitÃ¤t
+table(df_ols2$arbeit_intensitaet, useNA = "ifany")
+
+# Soziale Beziehungen zu den Kollegen
+table(df_ols2$arbeit_zufriedenheit_atmosphaere, useNA = "ifany")
+
+
+df_ols3 <- df_ols2
+
+# Hausarbeitsstunden
+table(df_ols3$hausarbeit_wochenstunden, useNA = "ifany")
+
+# Kinderbetreuung
+table(df_ols3$kinder_betreuung, useNA = "ifany")
+df_ols3 <- df_ols3 %>%
+  mutate(kinder_betreuung = case_when(
+    kinder_betreuung == 0 ~ 1,
+    kinder_betreuung %in% c(1,2) ~ 2))
+df_ols3$kinder_betreuung <- factor(df_ols3$kinder_betreuung, levels = c(1,2), labels = c("Nein", "Ja"))
+
+table(df_ols3$kinder_betreuung, useNA = "ifany")
+
+
+
+# Pflege von AngehÃ¶rigen
+table(df_ols3$pflege_angehoerige, useNA = "ifany")
+
+
+df_arbeit_zeit_sum <- df_ols3 %>%
+  mutate(arbeit_zeit_sum = arbeit_zeit_wochenstunden + hausarbeit_wochenstunden) %>%
+  select(id, year, ermuedung, arbeit_zeit_sum)
+
+
+
+
+
+
+
+#### is already balanced
+df_balanced <- df_ols3
+df_balanced %>% group_by(cluster) %>% count()
+```
+
