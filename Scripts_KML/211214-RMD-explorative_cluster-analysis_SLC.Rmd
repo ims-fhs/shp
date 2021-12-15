@@ -1,0 +1,346 @@
+---
+title: "Explorative Cluster Analyse <br/><br/>"
+author: 
+- Michael Schmid
+- Institut für Modellbildung und Simulation, OST St. Gallen
+date: "Dokument erstellt am `r format(Sys.Date(), '%A %d.%m.%Y')`"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    theme: yeti
+---
+
+```{=html}
+<style type="text/css">
+
+body, td {
+   font-size: 13px;
+   text-align: justify;
+   <!-- font: Courier New -->
+}
+pre {
+  font-size: 12px
+}
+
+</style>
+```
+
+
+```{r setup, include=FALSE}
+options(width = 110)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(groupdata2) # -> for downsampling
+library(ggpubr) # -> for quarterplot
+```
+
+<br/><br/>
+
+# Einleitung
+
+
+
+
+### Import der Daten
+```{r}
+load("../data/df_clustered.RData")
+df_clustered$id <- as.factor(df_clustered$id)
+df_clustered$cluster <- as.factor(df_clustered$cluster)
+```
+
+
+# Downsampling
+
+Anzahl Beobachtungen pro Cluster (mit und ohne Downsampling - `n` & `n_equalized`)
+```{r}
+set.seed(1)
+### down or upsample data to make cluster same size
+### choosed downsample, bc it removes whole id's, upsample just randomly duplicates rows
+df_clustered_equal <- downsample(
+  data = df_clustered,
+  cat_col = "cluster",
+  id_col = "id",
+  id_method = "n_rows_c"
+)
+
+t1 <- df_clustered %>% group_by(cluster) %>%  count()
+t2 <- df_clustered_equal %>% group_by(cluster) %>%  count()
+t <- cbind(t1, n_equalized = t2$n)
+DT::datatable(t, rownames = FALSE)
+```
+
+Anzahl Beobachtungen pro ID's pro Cluster (mit und ohne Downsampling - `n` & `n_equalized`) 
+
+Es werden entweder alle Beobachtungen einer ID entfernt, oder alle Beobachtungen 
+behalten -> vgl. `groupdata2::downsample(id_method = "n_rows_c)` 
+
+```{r}
+t1 <- df_clustered %>% group_by(id) %>%  count()
+t2 <- df_clustered_equal %>% group_by(id) %>%  count()
+
+t <- dplyr::left_join(t1, t2, by = "id")
+colnames(t) <- c("id", "n", "n_equalized")
+# t$n_equalized[is.na(t$n_equalized)] <- "-"
+DT::datatable(t, rownames = FALSE)
+```
+
+
+
+
+# 1D - Summarischer Vergleich {.tabset}
+
+In diesem Teil wollen wir die gegebenen Cluster bezüglich ihren Eigenschaften 
+untersuchen. Hierfür werden sämtliche verfügbaren Variablen herangezogen und die 
+Cluster im Kontext jeder Variable zu verglichen. Hierfür gibt es vier Sichtweisen: 
+
+ * Vergleich der ganzen Cluster -> violin/boxplots pro Cluster (Verteilung von 
+ `variable`, gegeben `cluster`) **vgl. 1. Zeile**  
+ * Vergleich zwischen Variablen-Ausprägungen -> bedingte barplots (Verteilung von 
+ `cluster`, gegeben `Variablen-Ausprägung`) **vgl. 2. Zeile**   
+ * Vergleich der absoluten Zugehörigkeit -> barplots (Wie oft sind die Cluster innerhalb 
+ der Ausprägungen von `variable` vorhanden?) **vgl. 3. Zeile**
+ * Vergleich der relativen Zugehörigkeit -> barplots (Wie stark sind die Cluster innerhalb 
+ der Ausprägungen von `variable` vorhanden? dh: Welcher Anteil von Cluster X ist 
+ in der Ausprägung Y von `variable` enthalten?) **vgl. 4. Zeile**
+
+
+> Resultat (spannende Variablen)
+
+ * **year**: Cluster 5 war in frühen Jahren (04 - 06) stärker vertreten als sonst (im 
+ Vergleich zu den anderen Clustern -> vgl. 4. Zeile)
+ * **arbeit_zeit_wochdenstunden**: Für >75 Wochenstunden ändert sich die Zuteilung 
+ zu den Clustern (andere Cluster deutlich stärker vertreten, andere weniger). -> vgl. 2.Zeile  
+ * **arbeit_zeit_wochdenstunden**: analog, für >60 vereinbarte Wochenstunden  
+ * **arbeit_intensitaet**: je höher die Intensität, desto eher liegt man in Cluster 1 o. 5 und 
+ desto weniger in Cluster 4 (-> vgl. Zeile 2). Cluster 4 ist i.A. stärker vertreten 
+ bei tiefen Intensitäten. 
+ * **arbeit_zufriedenheit_atmosphaere**: Je höher die Zufriedenheit, desto eher liegt 
+ man in Cluster 4 und desto weniger in cluster 1 & 5 (genau umgekehrt zum Punkt oben). 
+ * **hausarbeit_wochenstunden**:  Für >50h ändert sich die Zuteilung zu den Clustern 
+ (andere Cluster deutlich stärker vertreten, andere weniger). -> vgl. 2.Zeile  
+ * **beeinträchtigung_arbeit_privat**: Asymmetrie zw. Cluster 4 & 5. Zeigt schön, dass 
+ Vereinbarkeitsprobleme in Verbindung stehen mit konstant hoher Ermüdung !!!!!
+ * ... 
+ 
+
+```{r, echo = FALSE}
+tenplot <- function(variable) {
+  
+  # violinplots
+  plot_1 <- ggplot(df_clustered, 
+                   aes_string(x="cluster", y=variable, group="cluster", fill="cluster")) +
+    geom_violin(show.legend = TRUE, lwd=1, color="black") + 
+    geom_boxplot(show.legend = FALSE, width=0.1, lwd=1, color="black") +
+    ggtitle(paste("Relative Verteilung von",variable, "innterhalb Cluster (all)"))
+  
+  plot_2 <- ggplot(df_clustered_equal, 
+                   aes_string(x="cluster", y=variable, group="cluster", fill="cluster")) +
+    geom_violin(show.legend = TRUE, lwd=1, color="black") +
+    geom_boxplot(show.legend = FALSE, width=0.1, lwd=1, color="black") +
+    ggtitle(paste("Relative Verteilung von",variable, "pro Cluster (equal)"))
+
+  # conditional distributions
+  plot_3 <- ggplot(df_clustered, 
+                   aes_string(variable, fill="cluster")) +
+    geom_bar(position = position_fill(reverse = TRUE), show.legend = TRUE) +
+    ggtitle(paste("Relativer Anteil der Cluster PRO", variable, "(all)")) + 
+    coord_flip()
+
+  plot_4 <- ggplot(df_clustered_equal, 
+                   aes_string(variable, fill="cluster")) +
+    geom_bar(position = position_fill(reverse = TRUE), show.legend = TRUE) +
+    ggtitle(paste("Relativer Anteil der Cluster PRO",variable,"(equal)")) + 
+    coord_flip()
+
+  # ----------------------------------------------------
+  # calculation of absolute and relative counts
+  my_df <- df_clustered %>%
+    group_by_at(c("cluster", variable)) %>%
+    summarise(n = n(), .groups = "drop_last") %>%
+    mutate(count = sum(n),
+           relative_count = n/count)
+  
+  my_df_equal <- df_clustered_equal %>%
+    group_by_at(c("cluster", variable)) %>%
+    summarise(n = n(), .groups = "drop_last") %>%
+    mutate(count = sum(n),
+           relative_count = n/count)
+  
+  # absolute values 
+  p5 <- ggplot(my_df, aes_string(x = variable, y = "n", fill = "cluster")) +
+    geom_bar(position="dodge", stat = "identity") + 
+    ggtitle(paste("Absoluter Anteil der Cluster nach", variable, "(all)"))
+  
+  p6 <- ggplot(my_df_equal, aes_string(x = variable, y = "n", fill = "cluster")) +
+    geom_bar(position="dodge", stat = "identity") + 
+    ggtitle(paste("Absoluter Anteil der Cluster nach", variable, "(equal)"))
+    
+  # relative values (inside cluster, shown per level of 'variable')
+  p7 <- ggplot(my_df, aes_string(x = variable, y = "relative_count", fill = "cluster")) +
+    geom_bar(position="dodge", stat = "identity") + 
+    ggtitle(paste("Relativer Anteil INNERHALB Cluster nach", variable, "(all)"))
+  
+  p8 <- ggplot(my_df_equal, aes_string(x = variable, y = "relative_count", fill = "cluster")) +
+    geom_bar(position="dodge", stat = "identity") + 
+    ggtitle(paste("Relativer Anteil INNERHALB Cluster nach", variable, "(equal)"))
+  
+  # density function (should be similar to p7 and p8)
+  p9 <- ggplot(df_clustered, aes_string(x = variable, colour = "cluster")) +
+    geom_density(size = 1.01) +
+    ggtitle(paste("Dichte-Verteilung von",variable,"pro Cluster (all)"))
+  
+  p10 <- ggplot(df_clustered_equal, aes_string(x = variable, colour = "cluster")) +
+    geom_density(size = 1.01) +
+    ggtitle(paste("Dichte-Verteilung von",variable,"pro Cluster (equal)"))
+  
+  
+  annotate_figure(ggarrange(plot_1, plot_2, plot_3, plot_4, p5, p6, p7, p8, p9, p10, 
+                            ncol = 2, nrow = 5), 
+                  top = text_grob(variable, color = "black", size = 20))
+}
+
+```
+
+
+```{r, results='asis', warning=FALSE, fig.width=12, fig.height=14}
+# for (i in colnames(df_clustered)[3:5]) {
+for (i in colnames(df_clustered)) {
+  cat("\n\n##",i,"\n\n")
+  print(tenplot(i))
+}
+```
+
+
+
+# 2D - Summarischer Vergleich {.tabset}
+Untersuchung von Ermüdung in Bezug auf eine weitere Variable UND die vorhandenen
+Cluster.
+
+
+> Resultat (spannende Variablen)
+
+ * ...
+ * ...
+
+
+```{r, echo = FALSE}
+# source for 2d visualisations: https://bio304-class.github.io/bio304-fall2017/ggplot-bivariate.html
+quarterplot_2d <- function(df, variable) {
+  df[[variable]] <- as.numeric(df[[variable]])
+
+  basic_plot <- ggplot(df, aes_string(x = variable, y = "ermuedung")) +
+    scale_fill_continuous(low="cyan3", high="red") +
+    facet_wrap(~cluster, nrow = 1, labeller = "label_both")
+
+  p1 <- basic_plot + geom_hex(binwidth = 0.2)
+  p2 <- basic_plot + geom_bin2d()
+  p3 <- basic_plot + stat_density_2d(aes(fill = ..level..), geom = "polygon")
+  p4 <- basic_plot + geom_density_2d(aes(color = cluster), alpha = 1) +
+                     geom_point(aes(color = cluster), alpha=0.01, size=1)
+
+  p <- ggarrange(p1, p2, p3, p4, ncol = 1, nrow = 4, align = "hv")
+  annotate_figure(p, top = text_grob(variable, color = "black", size = 20))
+}
+```
+
+
+## Gesamter Datensatz {.tabset}
+```{r, results='asis', warning=FALSE, fig.height=9}
+# for (i in colnames(df_clustered)[3:5]) {
+for (i in colnames(df_clustered)) {
+  cat("\n\n###",i,"\n\n")
+  # with try() we can catch errors... for some columns we can't produce
+  # the 2d plots. Reason unknown for now... for now we move on. If these plots
+  # get more interesting to us, we need to dig into that
+  #
+  # columns that produce errors are:
+  # error_cols <- c("arbeit_zeit_nacht", "arbeit_qualifikation",
+  # "partnerschaft", "tod_person", "migrationshintergrund",
+  # "status", "ch_nationalitaet", "pflege_extern", "pflege_angehoerige",
+  # "cluster")
+  print(try(quarterplot_2d(df = df_clustered,i)))
+}
+```
+
+## Balancierter Datensatz {.tabset}
+```{r, results='asis', warning=FALSE, fig.height=9}
+# for (i in colnames(df_clustered)[3:5]) {
+for (i in colnames(df_clustered_equal)) {
+  cat("\n\n###",i,"\n\n")
+  # with try() we can catch errors... for some columns we can't produce
+  # the 2d plots. Reason unknown for now... for now we move on. If these plots
+  # get more interesting to us, we need to dig into that
+  #
+  # columns that produce errors are:
+  # error_cols <- c("arbeit_zeit_nacht", "arbeit_qualifikation",
+  # "partnerschaft", "tod_person", "migrationshintergrund",
+  # "status", "ch_nationalitaet", "pflege_extern", "pflege_angehoerige",
+  # "cluster")
+  print(try(quarterplot_2d(df = df_clustered_equal,i)))
+}
+```
+
+
+# Zeitbezogener Vergleich der Cluster {.tabset}
+
+Es kann sein, dass sich Cluster im zeitlichen Verlauf einzelner Variablen unterscheiden
+obwohl dies in der summarischen Sicht (letztes Kapitel) nicht ersichtlich wird. Aus
+diesem Grund wollen wir in diesem Kapitel die Cluster bezüglich ihrem zeitlichen
+Verlauf im Kontext einer Variablen untersuchen.
+
+Hierfür stellen wir den mittleren
+zeitlichen Verlauf für jede Variable pro Cluster dar, um Unterschiede im zeitlichen
+Verlauf der Variablen zu entdecken.
+
+Eine Betrachtung der direkten Zeitverläufe ist für die meisten Fälle nicht sinnvoll,
+da die Grafiken nichts mehr anzeigen (weshalb der Mittelwert verwendet wird).
+
+Faktor-Variablen werden in numerische Variablen transformiert (die Levels interessieren
+uns vorläufig nicht, sondern nur die Tatsache, ob es pro Cluster Unterschiede in der
+Zusammensetzung der Merkmasausprägungen gibt).
+
+ * Grafiken LINKS = gesamter Datensatz
+ * RECHTS = Balancierter Datensatz (equalized mittels downsampling)
+
+
+> Resultat (spannende Variablen)
+
+ * ...
+ * ...
+
+
+```{r, echo = FALSE}
+timeplot <- function(df, variable, title_suffix) {
+  # since variable is a string, we have to use .data[[variable]] to refer to this column
+  df[[variable]] <- as.numeric(df[[variable]])
+
+  rib <- df %>%
+    group_by(cluster, year) %>%
+    drop_na(.data[[variable]]) %>%
+    summarise(Mean = mean(.data[[variable]]), Std = sd(.data[[variable]]))
+
+  p <- ggplot(rib, aes(x = year, col = cluster, fill = cluster)) +
+    geom_jitter(data= df, aes_string(y = variable), alpha=0.02) +
+    geom_violin(data= df, aes_string(y = variable, group = "year"), alpha=0.1) +
+    geom_ribbon(aes(ymin = Mean-Std, ymax = Mean+Std), alpha = 0.3) +
+    geom_line(aes(y = Mean), size = 1.2) +
+    facet_wrap(~cluster, ncol = 1, labeller = "label_both") +
+    ggtitle(paste("mittlere, zeitliche Entwicklung", title_suffix))
+  return(p)
+}
+```
+
+```{r, results='asis', warning=FALSE, message=FALSE, fig.height=7}
+# for (i in colnames(df_clustered)[3:5]) {
+for (i in colnames(df_clustered)) {
+  cat("\n\n##",i,"\n\n")
+  p1 <- timeplot(df = df_clustered,i, "(all)")
+  p2 <- timeplot(df = df_clustered_equal,i, "(equal)")
+  p <- ggarrange(p1, p2, ncol = 2, nrow = 1, align = "hv")
+  print(annotate_figure(p, top = text_grob(i, color = "black", size = 20)))
+}
+```
