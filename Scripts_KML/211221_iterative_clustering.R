@@ -97,11 +97,6 @@ sample %>% mutate(alter = round(alter/10)) %>% group_by(alter) %>% summarise(mea
 
 # Clustering functions ---------------------------------------------------------
 
-# for now -> we can't call kml within a function due to saving (I guess we need
-# global.evn() as parent environment) -> maybe we can find a solution using:
-# https://stackoverflow.com/questions/12279076/r-specify-function-environment
-
-
 extract_kml_clusters <- function(cluster, df_kml, j) {
   ### code to add clusters to the original data
   id_not_na <- as.numeric(str_extract(cluster@idFewNA, "\\-*\\d+\\.*\\d*"))
@@ -125,9 +120,13 @@ do_kml_clustering <- function(df_kml, n = 3, nbRedrawing = 1) {
   for (j in 1:n) {
     # create clustered data an then a ClusterLongData object.
     kml_cluster_data <- pivot_wider(df_kml[1:3], names_from = year, values_from = depression)
-    cluster = clusterLongData(as.matrix(kml_cluster_data[c(2:17)]))
+    cluster <- clusterLongData(as.matrix(kml_cluster_data[c(2:17)]))
     # cluster data
-    kml(cluster, nbClusters = 5, nbRedrawing = nbRedrawing, toPlot='none')
+    kml(cluster, nbClusters = 5, nbRedrawing = nbRedrawing, toPlot='none',
+        parAlgo = parALGO(saveFreq = Inf)) # If we don't save we don't have problems
+                                           # due tue environment-issues etc...
+                                           #  -> when using save, use "cluster <<-"
+                                           #     insteas of "cluster <-" above
 
     # plot and print
     png(file=paste0(getwd(),"/Scripts_KML/pics_kml/",j,".png"), width = 1000, height = 600)
@@ -143,11 +142,11 @@ do_kml_clustering <- function(df_kml, n = 3, nbRedrawing = 1) {
 # ------------------------------- run functions  -------------------------------
 df_kml <- sample[1:3]
 set.seed(1)
-clustering_10_1 <- do_kml_clustering(df_kml, n = 20, nbRedrawing = 1)
+clustering_20_1 <- do_kml_clustering(df_kml, n = 20, nbRedrawing = 1)
 
 
 # make changes of clusters visible
-df1 <- clustering_10_1 %>%
+df1 <- clustering_20_1 %>%
   select(-year, - depression) %>%
   distinct_all() %>% # take unique rows (since we don't have year and depression anymore)
   pivot_longer(cols = starts_with("cluster"), names_to = "iteration", names_prefix = "cluster_",
@@ -167,4 +166,3 @@ ggplot(data = df1[1:1000,], aes(x = factor(id), y = 1, fill = cluster)) +
 #
 # We must overcome this to further unterdtand the stochastic instabilities of the
 # kml-Clustering algorithms !!
-☻
