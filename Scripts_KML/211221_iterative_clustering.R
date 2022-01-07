@@ -316,17 +316,17 @@ do_kmlShape_clustering <- function(df_kml, n = 3) {
 # df_kml <- sample[1:3]
 # set.seed(1)
 # kml_clustering_10_1 <- do_kml_clustering(df_kml, n = 10, nbRedrawing = 1)
-# kmlshape_clustering_10_1 <- do_kmlShape_clustering(df_kml, n = 10)
+# kmlshape_clustering_10 <- do_kmlShape_clustering(df_kml, n = 10)
 #
 
 
 # ------------------------------- Analysis -------------------------------------
 imsbasics::clc()
 kml_clustering_10_1 <- imsbasics::load_rdata("kml_clustering_10_1", "Scripts_KML/pics_kml/n=10_nbRedrawing=1/")
-kmlshape_clustering_10_1 <- imsbasics::load_rdata("kmlshape_clustering_10", "Scripts_KML/pics_kmlShape/n=10/")
+kmlshape_clustering_10 <- imsbasics::load_rdata("kmlshape_clustering_10", "Scripts_KML/pics_kmlShape/n=10/")
 
 
-my_df <- kml_clustering_10_1 # kmlshape_clustering_10_1
+my_df <- kml_clustering_10_1 # kmlshape_clustering_10
 
 
 # We want to analyse the clusters per id
