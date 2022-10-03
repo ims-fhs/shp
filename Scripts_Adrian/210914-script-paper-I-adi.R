@@ -90,13 +90,13 @@ sample <- sample %>% mutate(
 df_kml <- sample[1:3]
 df_kml <- df_kml %>% drop_na()
 library(kmlShape)
-set.seed(1)
-for (cluster_number in c(4)) {
+# set.seed(1)
+for (cluster_number in c(5)) {
 
     kml_cluster_data <- df_kml %>% select(c(id, ermuedung, year)) %>%
       pivot_wider (names_from = year, values_from = ermuedung)
     cluster <- cldsWide(data.frame(kml_cluster_data))
-    reduceTraj(cluster, nbSenators = 75, imputationMethod = "linearInterpol")
+    reduceTraj(cluster, nbSenators = 200, imputationMethod = "linearInterpol")
 
 
     start_time <- Sys.time()
@@ -471,7 +471,7 @@ table(df_clustered$arbeit_einbezug_entscheidungen, useNA = "ifany")
 
 
 df_ae <- df_clustered
-rm(list = setdiff(ls(), "df_ae"))
+rm(list = setdiff(ls(), c("df_ae", "cp")))
 df_ae_norm <- normalize(df_ae, method = "range", range = c(0, 1))
 
 ols_ae_1 <- plm(ermuedung ~
@@ -507,7 +507,6 @@ ggplot(df_fp) +
 
 
 fe_ae_1 <- plm(ermuedung ~
-                  arbeit_einbezug_entscheidungen +
                   arbeit_qualifikation + arbeit_zeit_wochenstunden +
                   arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
                   arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere,
@@ -518,6 +517,24 @@ stargazer(fe_ae_1,
           title="FE A>E", type="text",
           column.labels=c("all"),
           df=FALSE, digits=4)
+
+# forest plot
+df_fp_fe_ae1 <- data.frame(
+  label = row.names(coef(summary(fe_ae_1))),
+  mean = as.numeric(coef(summary(fe_ae_1))[,1]),
+  lower = as.numeric(coef(summary(fe_ae_1))[,1] + coef(summary(fe_ae_1))[,2]),
+  upper = as.numeric(coef(summary(fe_ae_1))[,1] - coef(summary(fe_ae_1))[,2])
+)
+
+ggplot(df_fp_fe_ae1) +
+  geom_pointrange(aes(x=mean, y=label, xmin=upper, xmax=lower), color = rep(cp[1],6)) +
+  labs(
+    x = "Normalisierte Regressionskoeffizienten",
+    y = "Variablen",
+    title = "Erschöpfung in Abhängigkeit der Arbeitsvariablen",
+    subtitle = "FE, alle Einträge aller Individuen von 2004 - 2019"
+  ) +
+  theme_bw()
 
 
 ggplot(df_ae, aes(x = arbeit_intensitaet, y = ermuedung)) +
@@ -836,66 +853,67 @@ stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]]
           title="Pooled OLS A+L+C>D per Cluster", type="text",
           column.labels=c("Cluster A", "Cluster B", "Cluster C", "Cluster D"),
           df=FALSE, digits=4)
-#
-# # 6) FE OLS A+L+C>D per Cluster -----------------------------------------
-# ### FE A+L+C>D
-# class(df_ols3$cluster)
-#
-# regressions <- list()
-# for(i in 1:length(unique(df_ols3$cluster))){
-#   df_ols3_cluster_i <- df_ols3 %>% filter(cluster == i)
-#   regressions[[i]] = plm(ermuedung ~
-#                            alter +
-#                            einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-#                            partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
-#                            arbeit_qualifikation + arbeit_zeit_wochenstunden +
-#                            arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
-#                            arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
-#                            hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
-#                          data = df_ols3_cluster_i, index = c("id","year"), model="within", effect = "twoways")
-# }
-#
-# stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]], regressions[[5]],
-#           title="FE A+L+C>D per Cluster", type="text",
-#           column.labels=c("Cluster A", "Cluster B", "Cluster C", "Cluster D", "Cluster E"),
-#           df=FALSE, digits=4)
-#
-# ggplot(df_ols3) +
-#   geom_boxplot(aes(x = alter, group = cluster))
-#
-# df_ols3 %>%
-#   group_by(cluster, geschlecht) %>%
-#   summarise(n = n()) %>%
-#   mutate(freq = n / sum(n))
-#
-# ggplot(df_ols3, aes(x = ausbildung)) +
-#   geom_bar(aes(y = ..prop.., group = 1)) +
-#   facet_wrap(~cluster)
-#
-# # 7) OLS A+L+C>D mit Interaktionen ---------------------------------------
-#
-# df_ols3_int <- df_ols3
-#
-# ols3_int <- plm(ermuedung ~
-#               ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
-#               einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
-#               partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
-#               arbeit_qualifikation + arbeit_zeit_wochenstunden +
-#               arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
-#               arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
-#               hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige +
-#               kinder_betreuung * arbeit_zeit_ueberstunden +
-#               pflege_angehoerige * arbeit_zeit_ueberstunden +
-#               hausarbeit_wochenstunden * arbeit_zeit_ueberstunden +
-#               kinder_betreuung * pflege_angehoerige,
-#               data = df_ols3_int, index = c("id","year"), model="pooling")
-#
-#
-# stargazer(ols3_int,
-#           title="Pooled OLS A+L+C>D mit Interaktionen", type="text",
-#           column.labels=c("all"),
-#           df=FALSE, digits=4)
-#
+
+
+# 6) FE OLS A+L+C>D per Cluster -----------------------------------------
+### FE A+L+C>D
+class(df_alce$cluster)
+
+regressions <- list()
+for(i in 1:length(unique(df_alce$cluster))){
+  df_alce_cluster_i <- df_alce %>% filter(cluster == i)
+  regressions[[i]] = plm(ermuedung ~
+                           alter +
+                           einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+                           partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+                           arbeit_qualifikation + arbeit_zeit_wochenstunden +
+                           arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
+                           arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
+                           hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige,
+                         data = df_alce_cluster_i, index = c("id","year"), model="within", effect = "twoways")
+}
+
+stargazer(regressions[[1]], regressions[[2]], regressions[[3]], regressions[[4]],
+          title="FE A+L+C>D per Cluster", type="text",
+          column.labels=c("Cluster A", "Cluster B", "Cluster C", "Cluster D"),
+          df=FALSE, digits=4)
+
+ggplot(df_alce) +
+  geom_boxplot(aes(x = alter, group = cluster))
+
+df_alce %>%
+  group_by(cluster, geschlecht) %>%
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n))
+
+ggplot(df_ols3, aes(x = ausbildung)) +
+  geom_bar(aes(y = ..prop.., group = 1)) +
+  facet_wrap(~cluster)
+
+# 7) OLS A+L+C>D mit Interaktionen ---------------------------------------
+
+df_ols3_int <- df_ols3
+
+ols3_int <- plm(ermuedung ~
+              ausbildung + alter + alter_2 + geschlecht + ch_nationalitaet +
+              einschraenkung_weg_ges_zustand + haushaltsaequivalenzeinkommen +
+              partnerschaft + tod_person + arbeit_einbezug_entscheidungen +
+              arbeit_qualifikation + arbeit_zeit_wochenstunden +
+              arbeit_zeit_ueberstunden + arbeit_zeit_nacht +
+              arbeit_intensitaet + arbeit_zufriedenheit_atmosphaere +
+              hausarbeit_wochenstunden + kinder_betreuung + pflege_angehoerige +
+              kinder_betreuung * arbeit_zeit_ueberstunden +
+              pflege_angehoerige * arbeit_zeit_ueberstunden +
+              hausarbeit_wochenstunden * arbeit_zeit_ueberstunden +
+              kinder_betreuung * pflege_angehoerige,
+              data = df_ols3_int, index = c("id","year"), model="pooling")
+
+
+stargazer(ols3_int,
+          title="Pooled OLS A+L+C>D mit Interaktionen", type="text",
+          column.labels=c("all"),
+          df=FALSE, digits=4)
+
 # # 7a) OLS A>D
 #
 # ols_nur_a <- plm(ermuedung ~
